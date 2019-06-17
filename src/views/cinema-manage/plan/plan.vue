@@ -72,9 +72,9 @@ export default {
     return {
       list: null,
       listLoading: true,
-      college_id:"", //上一级页面带过来
+      college_id:'', //上一级页面带过来
       searchName:null
-    };
+    }
   },
   mounted() {
    
@@ -85,7 +85,7 @@ export default {
   computed:{
  
   }
-};
+}
 </script>
 <style lang="scss">
 #plan{

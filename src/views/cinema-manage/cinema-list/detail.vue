@@ -26,7 +26,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="onSubmit">保存</el-button>
-          <el-button>返回</el-button>
+          <goBack></goBack>
         </el-form-item>
       </el-form>
     </div>
@@ -35,24 +35,27 @@
 
 <script>
 import { addCinema } from "@/api/cinema";
+import goBack from "@/components/Backone/index";
 export default {
   filters: {},
+  components:{
+    goBack
+  },
   data() {
     return {
       listLoading: true,
       cinemaInfo:{
-        cinema_name:"",
-        screen_amount:"",
-        worker_name:"",
-        worker_tel:"",
-        college_id:"",
+        cinema_name:'',
+        screen_amount:'',
+        worker_name:'',
+        worker_tel:'',
+        college_id:'',
         cinema_status:true
       }
-    };
+    }
   },
   mounted() {
     this.cinemaInfo = {...this.cinemaInfo,...this.$route.query};
-    console.log(this.cinemaInfo);
   },
   methods: {
     //新增
@@ -67,5 +70,5 @@ export default {
     },
     //编辑
   }
-};
+}
 </script>

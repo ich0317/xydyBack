@@ -19,7 +19,7 @@
       </el-col>
     </el-row>
     <div class="content-box">
-      <el-table :data="list" stripe style="width: 100%">
+      <el-table :data="list" stripe style="width: 100%" element-loading-text="Loading" v-loading="listLoading">
         <el-table-column prop="cinema_name" label="影院名称" width="220"></el-table-column>
         <el-table-column prop="screen_amount" label="影厅数量" width="150"></el-table-column>
         <el-table-column prop="worker_name" label="管理人" width="150"></el-table-column>
@@ -46,9 +46,9 @@ export default {
     return {
       list: null,
       listLoading: true,
-      college_id:"", //上一级页面带过来
+      college_id:'',//上一级页面带过来
       searchName:null
-    };
+    }
   },
   mounted() {
     let {college_id } = this.$route.query;
@@ -74,13 +74,14 @@ export default {
       }else{
         searchCond = {college_id:this.college_id};
       }
+      this.listLoading=true;
       getCinemaList(searchCond).then(res=>{
         let {data,msg}=res;
          this.list = data.map(v=>{
           v._cinema_status = v.cinema_status ? '启用' : '停用';
           return v;
         })
-      
+        this.listLoading=false;
       })
     },
     //编辑影院
@@ -122,9 +123,6 @@ export default {
         name:"plan"
       });
     }
-  },
-  computed:{
- 
   }
-};
+}
 </script>

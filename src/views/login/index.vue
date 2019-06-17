@@ -115,7 +115,7 @@ export default {
           // }).catch(() => {
           //   this.loading = false
           // })
-          console.log(this.redirect);
+    
           login(this.loginForm).then(res=>{
             let {code , data , msg} = res;
             this.$router.push({ path: this.redirect || '/' });

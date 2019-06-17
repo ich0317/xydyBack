@@ -44,16 +44,16 @@ export default {
     return {
       list: [
         {
-          article_title:"影院如何发布影片",
-          editor:"大元",
-          date:"2019-05-12",
-          views:"153",
-          status:"已发布"
+          article_title:'影院如何发布影片',
+          editor:'大元',
+          date:'2019-05-12',
+          views:'153',
+          status:'已发布'
         }
       ],
       listLoading: true,
       searchName:null //搜索关键字
-    };
+    }
   },
   created() {
     
@@ -61,11 +61,11 @@ export default {
   methods: {
     edit(){
       this.$router.push({
-        name:"news-detail"
+        name:'news-detail'
       });
     }
   }
-};
+}
 </script>
 <style lang="scss">
 </style>

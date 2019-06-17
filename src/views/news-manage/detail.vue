@@ -58,10 +58,9 @@ export default {
     return {
       list: [],
       listLoading: true,
-      content:""
-    };
+      content:''
+    }
   },
-  created() {},
   methods: {
     handleAvatarSuccess(res, file) {
         this.imageUrl = URL.createObjectURL(file.raw);
@@ -79,7 +78,7 @@ export default {
         return isJPG && isLt2M;
       }
   }
-};
+}
 </script>
 <style lang="scss">
 #news{

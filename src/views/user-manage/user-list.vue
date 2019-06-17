@@ -7,10 +7,10 @@
           <div class="pan-form">
             <el-form :inline="true" label-width="80px" class="demo-form-inline">
               <el-form-item label="手机号">
-                <el-input placeholder="手机号" ></el-input>
+                <el-input placeholder="手机号" />
               </el-form-item>
               <el-form-item>
-                <el-button type="primary">查询</el-button>
+                <el-button type="primary" />查询
               </el-form-item>
             </el-form>
           </div>
@@ -19,11 +19,10 @@
     </el-row>
     <div class="content-box">
       <el-table :data="list" stripe style="width: 100%">
-        <el-table-column prop="phone_num" label="手机号" width="200"></el-table-column>
-        <el-table-column prop="reg_date" label="注册日期"></el-table-column>
+        <el-table-column prop="phone_num" label="手机号" width="200" />
+        <el-table-column prop="reg_date" label="注册日期" />
       </el-table>
     </div>
-    
   </div>
 </template>
 
@@ -34,20 +33,17 @@ export default {
     return {
       list: [
         {
-          phone_num:"15201664353",
-          reg_date:"2019-02-10"
+          phone_num: '15201664353',
+          reg_date: '2019-02-10'
         }
       ],
       listLoading: true,
-      searchName:null //搜索关键字
-    };
+      searchName: null
+    }
   },
-  created() {
-    
-  },
-  methods: {
-  }
-};
+  created() {},
+  methods: {}
+}
 </script>
 <style lang="scss">
 </style>

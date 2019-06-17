@@ -19,7 +19,7 @@
       </el-col>
     </el-row>
     <div class="content-box">
-      <el-table :data="list" stripe style="width: 100%">
+      <el-table :data="list" stripe style="width: 100%" element-loading-text="Loading" v-loading="listLoading">
         <el-table-column prop="college_name" label="学校名称" width="220"></el-table-column>
         <el-table-column prop="province" label="省" width="150"></el-table-column>
         <el-table-column prop="city" label="市" width="150"></el-table-column>
@@ -39,13 +39,12 @@
 <script>
 import { getCollegeList, delCollege } from "@/api/cinema";
 export default {
-  filters: {},
   data() {
     return {
       list: null,
       listLoading: true,
       searchName:null //搜索关键字
-    };
+    }
   },
   created() {
     this.fetchData();
@@ -106,7 +105,7 @@ export default {
       });
     }
   }
-};
+}
 </script>
 <style lang="scss">
 </style>

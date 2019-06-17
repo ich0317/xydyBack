@@ -24,7 +24,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="onSubmit">保存</el-button>
-          <el-button>返回</el-button>
+          <goBack></goBack>
         </el-form-item>
       </el-form>
     </div>
@@ -33,8 +33,11 @@
 <script>
 import city from "@/utils/city";
 import { addCollege } from "@/api/cinema";
+import goBack from "@/components/Backone/index";
 export default {
-  filters: {},
+  components:{
+    goBack
+  },
   data() {
     return {
       list: null,
@@ -45,9 +48,9 @@ export default {
         area:[],
         address:'',
         mark:'',
-        college_id:""
+        college_id:''
       }
-    };
+    }
   },
   mounted(){
     let collegeDetail = this.$route.query;
@@ -101,7 +104,7 @@ export default {
       })
     }
   }
-};
+}
 </script>
 <style lang="scss">
 #college {

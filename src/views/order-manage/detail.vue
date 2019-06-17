@@ -111,7 +111,7 @@ export default {
     return {
       list: null,
       listLoading: true
-    };
+    }
   },
   created() {
     
@@ -119,7 +119,7 @@ export default {
   methods: {
     
   }
-};
+}
 </script>
 <style lang="scss">
 #order{

@@ -57,19 +57,19 @@ export default {
     return {
       list: [
         {
-          order_num:"20192536001247",
-          film_name:"大人物",
-          college_name:"清华大学",
-          cinema_name:"清华大礼堂",
-          screen_name:"杜比影音",
-          order_price:"12.5",
-          status:"已完成"
+          order_num:'20192536001247',
+          film_name:'大人物',
+          college_name:'清华大学',
+          cinema_name:'清华大礼堂',
+          screen_name:'杜比影音',
+          order_price:'12.5',
+          status:'已完成'
         }
       ],
       listLoading: true,
       searchName:null, //搜索关键字
       order_date:[]
-    };
+    }
   },
   created() {
     
@@ -81,7 +81,7 @@ export default {
       });
     }
   }
-};
+}
 </script>
 <style lang="scss">
 </style>
