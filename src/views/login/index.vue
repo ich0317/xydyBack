@@ -53,18 +53,10 @@
 </template>
 
 <script>
-import { validUsername } from '@/utils/validate'
 import { login } from '@/api/user'
 export default {
   name: 'Login',
   data() {
-    const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('请输入用户名'))
-      } else {
-        callback()
-      }
-    }
     const validatePassword = (rule, value, callback) => {
       if (value.length < 6) {
         callback(new Error('密码不能少于6位'))
@@ -78,7 +70,7 @@ export default {
         password: '123456'
       },
       loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
+        username: [{ required: true, message: "请输入用户名", trigger: 'blur'}],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       loading: false,
@@ -109,17 +101,10 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          // this.$store.dispatch('api/login', this.loginForm).then(() => {
-          //   this.$router.push({ path: this.redirect || '/' })
-          //   this.loading = false
-          // }).catch(() => {
-          //   this.loading = false
-          // })
-    
-          login(this.loginForm).then(res=>{
-            let {code , data , msg} = res;
-            this.$router.push({ path: this.redirect || '/' });
-          });
+          this.$store.dispatch('user/login', this.loginForm).then(() => {
+            this.$router.push({ path: this.redirect || '/' })
+          }).catch(() => {
+          })
           this.loading = false
         } else {
           console.log('error submit!!')

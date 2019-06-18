@@ -108,3 +108,11 @@ export function param2Obj(url) {
       '"}'
   )
 }
+
+/**
+ * 个位数补0
+ * @param {(number|string)}
+ */
+export function to0(n){
+  return n*1 < 10 ? '0'+n : n;
+}

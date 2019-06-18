@@ -6,24 +6,15 @@
 
     <div class="right-menu">
       <el-dropdown class="avatar-container" trigger="click">
-        <div class="avatar-wrapper">
-          <img :src="avatar+'?imageView2/1/w/80/h/80'" class="user-avatar">
-          <i class="el-icon-caret-bottom" />
-        </div>
+        <div class="avatar-wrapper">{{name}}<i class="el-icon-caret-bottom" /></div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
           <router-link to="/">
             <el-dropdown-item>
-              Home
+              首页
             </el-dropdown-item>
           </router-link>
-          <a target="_blank" href="https://github.com/PanJiaChen/vue-admin-template/">
-            <el-dropdown-item>Github</el-dropdown-item>
-          </a>
-          <a target="_blank" href="https://panjiachen.github.io/vue-element-admin-site/#/">
-            <el-dropdown-item>Docs</el-dropdown-item>
-          </a>
           <el-dropdown-item divided>
-            <span style="display:block;" @click="logout">Log Out</span>
+            <span style="display:block;" @click="logout">退出</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
@@ -35,7 +26,6 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
-
 export default {
   components: {
     Breadcrumb,
@@ -44,7 +34,7 @@ export default {
   computed: {
     ...mapGetters([
       'sidebar',
-      'avatar'
+      'name'
     ])
   },
   methods: {
@@ -52,7 +42,7 @@ export default {
       this.$store.dispatch('app/toggleSideBar')
     },
     async logout() {
-      await this.$store.dispatch('user/logout')
+      await this.$store.dispatch('user/resetToken')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
     }
   }
@@ -88,7 +78,7 @@ export default {
     float: right;
     height: 100%;
     line-height: 50px;
-
+    margin-right: 10px;
     &:focus {
       outline: none;
     }
@@ -115,11 +105,10 @@ export default {
       margin-right: 30px;
 
       .avatar-wrapper {
-        margin-top: 5px;
         position: relative;
-
+        cursor: pointer;
         .user-avatar {
-          cursor: pointer;
+          
           width: 40px;
           height: 40px;
           border-radius: 10px;
@@ -129,11 +118,13 @@ export default {
           cursor: pointer;
           position: absolute;
           right: -20px;
-          top: 25px;
+          top: 20px;
           font-size: 12px;
         }
       }
     }
   }
+  
 }
+.el-dropdown-menu{ margin-top: 0;}
 </style>

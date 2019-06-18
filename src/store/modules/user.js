@@ -1,11 +1,10 @@
-import { login, logout, getInfo } from '@/api/user'
+import { login, logout } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
 const state = {
-  token: getToken(),
-  name: '',
-  avatar: ''
+  token: getToken('xydy_token'),
+  name: getToken('xydy_username')
 }
 
 const mutations = {
@@ -14,9 +13,6 @@ const mutations = {
   },
   SET_NAME: (state, name) => {
     state.name = name
-  },
-  SET_AVATAR: (state, avatar) => {
-    state.avatar = avatar
   }
 }
 
@@ -26,43 +22,23 @@ const actions = {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
       login({ username: username.trim(), password: password }).then(response => {
-        const { data } = response
+        const { data } = response;
         commit('SET_TOKEN', data.token)
-        setToken(data.token)
+        commit('SET_NAME', data.username)
+        setToken('xydy_token',data.token)
+        setToken('xydy_username',data.username)
         resolve()
       }).catch(error => {
         reject(error)
       })
     })
   },
-
-  // get user info
-  getInfo({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      getInfo(state.token).then(response => {
-        const { data } = response
-
-        if (!data) {
-          reject('Verification failed, please Login again.')
-        }
-
-        const { name, avatar } = data
-
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
-        resolve(data)
-      }).catch(error => {
-        reject(error)
-      })
-    })
-  },
-
   // user logout
   logout({ commit, state }) {
     return new Promise((resolve, reject) => {
       logout(state.token).then(() => {
         commit('SET_TOKEN', '')
-        removeToken()
+        removeToken('xydy_token')
         resetRouter()
         resolve()
       }).catch(error => {
@@ -75,7 +51,9 @@ const actions = {
   resetToken({ commit }) {
     return new Promise(resolve => {
       commit('SET_TOKEN', '')
-      removeToken()
+      commit('SET_NAME', '')
+      removeToken('xydy_token')
+      removeToken('xydy_username')
       resolve()
     })
   }
