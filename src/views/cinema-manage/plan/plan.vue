@@ -6,29 +6,29 @@
           <div class="pan-name">查询条件</div>
           <div class="pan-form">
             <el-form :inline="true" label-width="80px" class="demo-form-inline">
-              <!-- <el-autocomplete
-                v-model="state"
+              <el-autocomplete
+                v-model="searchInfo.film_name"
                 :fetch-suggestions="querySearchAsync"
                 placeholder="请输入内容"
                 @select="handleSelect"
-              ></el-autocomplete>-->
-              <!-- <el-form-item label="选择语言">
-                <el-select>
-                  <el-option label="区域一" value="shanghai"></el-option>
-                  <el-option label="区域二" value="beijing"></el-option>
+                style="width:220px;"
+                :disabled="isAdd"
+              ></el-autocomplete>
+              <el-form-item label="选择语言">
+                <el-select v-model="searchInfo.language" :disabled="isAdd">
+                  <el-option :label="item" :value="item" v-for="(item,index) in searchInfo.languageArr" :key="index"></el-option>
                 </el-select>
               </el-form-item>
               <el-form-item label="选择版本">
-                <el-select>
-                  <el-option label="区域一" value="shanghai"></el-option>
-                  <el-option label="区域二" value="beijing"></el-option>
+                <el-select v-model="searchInfo.film_version" :disabled="isAdd">
+                  <el-option :label="item" :value="item" v-for="(item,index) in searchInfo.film_versionArr" :key="index"></el-option>
                 </el-select>
               </el-form-item>
-              <el-form-item label="影片价格">
-                <el-input ></el-input>
-              </el-form-item>-->
+              <el-form-item label="影片价格" >
+                <el-input style="width:100px;" v-model="searchInfo.sell_price" :disabled="isAdd"></el-input>
+              </el-form-item>
               <el-form-item>
-                <el-button type="primary">添加影片</el-button>
+                <el-button type="primary" @click="addFilm">{{isAdd ? '取消添加' : '添加影片'}}</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -48,28 +48,32 @@
       </div>
 
       <div class="screen-box" ref="screenbox">
-        <div class="screen-bar clearfix" nums="0">
-          <div class="screen-name">东方时尚</div>
-          <div class="lines" ref="lines">
+
+        <div class="screen-bar clearfix" v-for="(v,idx) in screenList" :key="idx">
+          <div class="screen-name">{{v.screen_name}}</div>
+          <div class="lines" ref="lines" :data-screenid="v._id">
             <ul class="time-item clearfix">
               <li v-for="(item,index) in effectiveTimeLong.length * 2" :key="index"></li>
             </ul>
           </div>
         </div>
 
-        <div class="screen-bar clearfix" nums="1">
-          <div class="screen-name">哈哈哈哈</div>
-          <div class="lines">
-            <ul class="time-item clearfix">
-              <li v-for="(item,index) in effectiveTimeLong.length * 2" :key="index"></li>
-            </ul>
-          </div>
+        <div class="drag-film" v-for="(item,index) in saveFilm" :key="'a'+index" :style="{left:item._start_time+'px'}">
+          <dl class="drag-film-content">
+            <dt>{{item.film_name}}</dt>
+            <dd>{{item.start_time}}-{{item.end_time}}</dd>
+            <dd>{{item.film_version}} {{item.language}}</dd>
+            <dd>{{item.sell_price}}元</dd>
+          </dl>
         </div>
+        
 
+        <!-- 拖拽框 -->
         <div
           class="drag-film"
           ref="drag"
           :style="{left:filmPos.pointXCenter+'px',top:filmPos.pointYCenter+'px',width:dragFilm.film_long+'px'}"
+          @click="downFilm"
         >
           <dl class="drag-film-content">
             <dt>{{dragFilm.film_name}}</dt>
@@ -85,7 +89,7 @@
 </template>
 
 <script>
-import { setTimeout } from 'timers';
+import { searchFilm } from '@/api/plan';
 import { to0 } from '@/utils/index';
 export default {
   data() {
@@ -102,17 +106,39 @@ export default {
       },
       //所选影片信息
       dragFilm:{
-        film_name:'西游记女儿国西游记女儿国',
-        start_time:'10:00',
-        end_time:'12:00',
-        start_date:'2018-10-12',
-        language:'国语',
-        film_version:'3D',
-        sell_price:'10.0',
-        film_long:120,
-        _id:'1'
+        film_name:'',
+        start_time:'',
+        end_time:'',
+        start_date:'',
+        language:'',
+        film_version:'',
+        sell_price:'',
+        film_long:''
       },
-      defaultStopTime:0  //影片悬浮时的时间点 默认6点时间戳
+      defaultStopTime:0,  //影片悬浮时的时间点 默认6点时间戳
+      //搜索条件
+      searchInfo:{
+        film_name:'',
+        language:'',
+        languageArr:[],
+        film_version:'',
+        film_versionArr:[],
+        sell_price:''
+      },
+      //是否添加影片
+      isAdd:false,
+      //存贮已落下的电影
+      saveFilm:[],
+      screenList:[
+        {
+          screen_name:'1号大礼堂',
+          _id:'111'
+        },
+        {
+          screen_name:'阶梯教室',
+          _id:'222'
+        }
+      ]
     };
   },
   mounted() {
@@ -128,14 +154,17 @@ export default {
       this.defaultStopTime = this.initConfig.startPoint * 3600;
     },
     drapMove(ev) {
+      
+      if(!this.isAdd)return;
       let { pageX, pageY } = ev;
       let screenbox = this.$refs.screenbox; //整体影厅框
       let oDrag = this.$refs.drag; //影片浮层
-      let oLine = this.$refs.lines; //单个时间条
+      let oLine = this.$refs.lines[0]; //单个时间条
       let boxHeight = screenbox.offsetHeight; //整体影厅高度
       let lineWidth = this.effectiveTimeLong.length * 162; //整体影厅宽度
       let { top,left } = this.getPos(screenbox); //整体影厅位置
       let $left  = this.getPos(oLine).left; //单个时间条位置
+    
       if (
         pageX < $left ||
         pageX > $left + lineWidth ||
@@ -144,10 +173,12 @@ export default {
       ) {
         this.filmPos = { pointXCenter:-9999, pointYCenter:0 };
       } else {
+         
         let pointX = pageX - $left
         let pointY = pageY - top;
         let pointXCenter = null;
         //每移动走5分钟
+        
         if(pointX % 5 == 0){
           //170影厅名称模块的宽度
           pointXCenter = (pointX) - oDrag.offsetWidth / 2;
@@ -158,9 +189,10 @@ export default {
           if(pointXCenter >= this.effectiveTimeLong.length * 60 - this.dragFilm.film_long){
             pointXCenter = this.effectiveTimeLong.length * 60 - this.dragFilm.film_long
           }
-          console.log(pointXCenter);
+      
           nowStopTime = this.defaultStopTime + pointXCenter * 60;
-
+          this.dragFilm._start_time = pointXCenter + 170;
+          console.log(pointXCenter);
           let startH = parseInt(nowStopTime / 3600);
           let startM = to0((nowStopTime % 3600) / 60);
           this.dragFilm.start_time = `${startH}:${startM}`;
@@ -172,9 +204,59 @@ export default {
           this.filmPos.pointXCenter = pointXCenter + 170;
 
         }
-        let pointYCenter = parseInt(pointY / 81) * 81;
+        let n = parseInt(pointY / 81);
+        let pointYCenter = n * 81;
+        if(this.screenList[n]){
+          this.dragFilm.screen_id = this.screenList[n]._id;
+        }
         this.filmPos.pointYCenter = pointYCenter;
       }
+    },
+    //影片搜索结果处理
+    handleSelect(val){
+     this.searchInfo.language='';
+     this.searchInfo.film_version='';
+     this.searchInfo.languageArr = val.language.split('/');
+     this.searchInfo.film_versionArr = val.film_version.split('/');
+
+     this.dragFilm.film_name = val.film_name;
+     this.dragFilm.film_long = val.film_long;
+     this.dragFilm._id = val._id;
+    },
+    querySearchAsync(queryString, cb) {
+      if(queryString == '')return;
+      searchFilm({film_name:queryString}).then(res =>{
+        let { data } = res;
+        data.forEach(v=>{
+          v.value=v.film_name;
+        })
+        cb(data);
+      })
+    },
+    //添加影片
+    addFilm(){
+      this.dragFilm.language = this.searchInfo.language;
+      this.dragFilm.film_version = this.searchInfo.film_version;
+      this.dragFilm.sell_price = this.searchInfo.sell_price;
+
+      if(this.isAdd){
+        this.$message({
+          message: '影片已取消',
+          type: 'success'
+        });
+        this.isAdd=false;
+      }else{
+        this.$message({
+          message: '影片已添加，请将鼠标拖动至时间轴',
+          type: 'success'
+        });
+        this.isAdd=true;
+      }
+    },
+    //落下影片
+    downFilm(){
+      this.saveFilm.push({...this.dragFilm});
+      console.log(this.saveFilm);
     },
     getPos(obj) {
       var top = 0;
