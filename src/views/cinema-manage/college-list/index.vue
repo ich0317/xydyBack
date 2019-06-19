@@ -7,11 +7,11 @@
           <div class="pan-form">
             <el-form :inline="true" label-width="80px" class="demo-form-inline">
               <el-form-item label="学校名称">
-                <el-input placeholder="学校名称" v-model="searchName"></el-input>
+                <el-input placeholder="学校名称" size="medium" v-model="searchName"></el-input>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" @click="searchCollege">查询</el-button>
-                <el-button @click="addCollege">添加学校</el-button>
+                <el-button type="primary" size="medium" @click="searchCollege">查询</el-button>
+                <el-button size="medium" @click="addCollege">添加学校</el-button>
               </el-form-item>
             </el-form>
           </div>

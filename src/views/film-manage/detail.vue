@@ -109,7 +109,7 @@
           </el-upload>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="addFilmData">保存</el-button>
+          <el-button type="primary" size="medium" @click="addFilmData">保存</el-button>
           <goBack></goBack>
         </el-form-item>
       </el-form>

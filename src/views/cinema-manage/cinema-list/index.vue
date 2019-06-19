@@ -7,11 +7,11 @@
           <div class="pan-form">
             <el-form :inline="true" label-width="80px" class="demo-form-inline">
               <el-form-item label="影院名称" v-if="!college_id">
-                <el-input placeholder="影院名称" v-model="searchName"></el-input>
+                <el-input placeholder="影院名称" v-model="searchName" size="medium"></el-input>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" @click="search" v-if="!college_id">查询</el-button>
-                <el-button @click="addCinema" v-if="college_id">添加影院</el-button>
+                <el-button type="primary" size="medium" @click="search" v-if="!college_id">查询</el-button>
+                <el-button @click="addCinema" size="medium" v-if="college_id">添加影院</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -97,7 +97,14 @@ export default {
       this.getCinema(this.searchName);
     },
     //影厅
-    inScreen(){},
+    inScreen(row){
+      this.$router.push({
+        name:'screen-list',
+        query:{
+          cinema_id:row._id
+        }
+      });
+    },
     //删除
     del(row){
       this.$confirm(`群定要删除${row.cinema_name}?`, "提示", {

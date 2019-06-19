@@ -80,6 +80,13 @@ export const constantRoutes = [
         component: () => import("@/views/cinema-manage/plan/plan"),
         hidden: true,
         meta: { title: "影片排期"}
+      },
+      {
+        path: "cinema-list/screen",
+        name: "screen-list",
+        component: () => import("@/views/cinema-manage/screen-list/index"),
+        hidden: true,
+        meta: { title: "创建影厅座位"}
       }
     ]
   },

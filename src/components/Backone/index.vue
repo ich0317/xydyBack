@@ -1,5 +1,5 @@
 <template>
-  <el-button @click="goBack">返回</el-button>
+  <el-button @click="goBack" size="medium">返回</el-button>
 </template>
 
 <script>

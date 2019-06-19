@@ -7,7 +7,7 @@
           <div class="pan-form">
             <el-form :inline="true" label-width="80px" class="demo-form-inline">
               <el-form-item label="影片名称">
-                <el-input placeholder="影片名称" v-model="searchCond.film_name"></el-input>
+                <el-input placeholder="影片名称" size="medium" v-model="searchCond.film_name"></el-input>
               </el-form-item>
               <el-form-item label="上映日期">
                 <el-date-picker
@@ -17,11 +17,12 @@
                   start-placeholder="开始日期"
                   end-placeholder="结束日期"
                   value-format="yyyy-MM-dd"
+                   size="medium"
                 ></el-date-picker>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" @click="search">查询</el-button>
-                <el-button @click="addFilm">添加影片</el-button>
+                <el-button type="primary" size="medium" @click="search">查询</el-button>
+                <el-button size="medium" @click="addFilm">添加影片</el-button>
               </el-form-item>
             </el-form>
           </div>

@@ -25,7 +25,7 @@
           <el-switch v-model="cinemaInfo.cinema_status" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="onSubmit">保存</el-button>
+          <el-button type="primary" size="medium" @click="onSubmit">保存</el-button>
           <goBack></goBack>
         </el-form-item>
       </el-form>
