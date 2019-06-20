@@ -1,5 +1,5 @@
 export const initSeatMap = seatInit => {
-  let { row, col, rowSort, colSort } = seatInit;
+  let { row, col, rowSort, colSort , screen_id} = seatInit;
   let seatJson = {};
   let i = null,
     j = null;
@@ -9,12 +9,15 @@ export const initSeatMap = seatInit => {
   let markCol = [];
   let markRow = [];
 
+
   switch (rowSort + colSort) {
     case "tblr":
       for (i = 1; i <= rowNum; i++) {
+        markRow.push(i);
         r++;
         let arr = [];
         let c=0;
+        
         for (j = 1; j <= colNum; j++) {
             c++;
           arr.push({
@@ -23,16 +26,21 @@ export const initSeatMap = seatInit => {
             graph_col: j,
             graph_row: i,
             seat_status: 0,
-            isShow: 1
-          });
-          markCol.push(c);
+            is_show: 1,
+            screen_id
+          }); 
         }
+
         seatJson[i] = arr;
+      }
+      for (let k=1; k<=colNum; k++){
+        markCol.push(k);
       }
       break;
     case "tbrl":
       for (i = 1; i <= rowNum; i++) {
         //排
+        markRow.push(i);
         r++;
         let arr = [];
         let c=0;
@@ -45,16 +53,22 @@ export const initSeatMap = seatInit => {
             graph_col: c,
             graph_row: r,
             seat_status: 0,
-            isShow: 1
+            is_show: 1,
+            screen_id
           });
         }
+        
         seatJson[i] = arr;
+      }
+      for (let k = colNum; k >= 1; k--){
+        markCol.push(k);
       }
       break;
     case "btlr":
     
       for (i = rowNum; i >= 1; i--) {
         //排
+        markRow.push(i);
         r++;
         let arr = [];
         let c=0;
@@ -67,17 +81,22 @@ export const initSeatMap = seatInit => {
             graph_col: c,
             graph_row: r,
             seat_status: 0,
-            isShow: 1
+            is_show: 1,
+            screen_id
           });
         }
         
         seatJson[r] = arr;
+      }
+      for (let k=1; k<=colNum; k++){
+        markCol.push(k);
       }
       break;
     case "btrl":
 
       for (i = rowNum; i >= 1; i--) {
         //排
+        markRow.push(i);
         r++;
         let arr = [];
         let c=0;
@@ -90,10 +109,15 @@ export const initSeatMap = seatInit => {
             graph_col: c,
             graph_row: r,
             seat_status: 0,
-            isShow: 1
+            is_show: 1,
+            screen_id
           });
         }
+        
         seatJson[r] = arr;
+      }
+      for (let k = colNum; k >= 1; k--){
+        markCol.push(k);
       }
       break;
   }

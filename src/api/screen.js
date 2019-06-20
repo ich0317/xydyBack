@@ -18,3 +18,20 @@ export function getScreen(data) {
   })
 }
 
+//设置座位
+export function addSeat(data) {
+  return request({
+    url: '/api/addSeat',
+    method: 'post',
+    data
+  })
+}
+
+//获取座位
+export function getSeat(data) {
+  return request({
+    url: '/api/getSeat',
+    method: 'post',
+    data
+  })
+}

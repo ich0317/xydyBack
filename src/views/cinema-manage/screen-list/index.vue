@@ -6,10 +6,16 @@
           <div class="pan-form">
             <el-form inline class="demo-form-inline">
               <el-form-item>
-                <el-button type="primary" size="medium" @click="addScreen">添加影厅</el-button>
+                <goBack></goBack>
               </el-form-item>
               <el-form-item>
-                <el-button size="medium" @click="createSeats">创建座位图</el-button>
+                <el-button type="success" size="medium" @click="addScreen">添加影厅</el-button>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="info" size="medium" @click="createSeats">创建座位图</el-button>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" size="medium" @click="submitSeat">保存</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -21,7 +27,7 @@
         v-for="(item,index) in allScreenInfo"
         :key="index"
         :class="{active: currentScreenId == item._id}"
-        @click="changeScreen(item.cinema_id)"
+        @click="changeScreen(item._id)"
       >{{item.screen_name}}</span>
     </div>
     <div class="screen-name-show">
@@ -36,12 +42,12 @@
         <tr>
           <td width="40" height="34">&nbsp;</td>
           <td>
-            <span class="mark-col" v-for="(item,index) in seatInit.col" :key="index">{{item}}</span>
+            <span class="mark-col" v-for="(item,index) in markCol" :key="index">{{item}}</span>
           </td>
         </tr>
         <tr>
           <td>
-            <span class="mark-row" v-for="(item,index) in seatInit.row" :key="index">{{item}}</span>
+            <span class="mark-row" v-for="(item,index) in markRow" :key="index">{{item}}</span>
           </td>
           <td>
             <div v-for="(item,index) in seatArr" :key="index" class="row-cloumn">
@@ -49,14 +55,17 @@
                 v-for="(v,idx) in item"
                 :key="idx"
                 class="col-cloumn"
-                :r="v.graph_row"
-                :c="v.graph_col"
+                :style="{opacity:v.is_show == 0 ? '0' : '1'}"
+                :data-_x="v.graph_col"
+                :data-_y="v.graph_row"
+                @click="drawSeat($event)"
               >{{v.seat_row}}排{{v.seat_col}}</span>
             </div>
           </td>
         </tr>
       </table>
     </div>
+    
     <!-- seat_no":"40111","seat_code":"9ada3e069bd4b74f","graph_col":"1","graph_row":"1","seat_col":"16","seat_row":"11","seat_status":0 -->
     <!-- //（0 可售、1 已售、2 锁定、3 不可售、4 已选） -->
     <inputBox :isBoxShow.sync="isScreenBox" @hideBox="dataHide" :title="boxTitle">
@@ -115,22 +124,25 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button size="medium" type="primary">确定</el-button>
+            <el-button size="medium" type="primary" @click="initMap">确定</el-button>
             <el-button size="medium" @click="cancelScreen">取消</el-button>
           </el-form-item>
         </el-form>
       </div>
     </inputBox>
+
   </div>
 </template>
 
 <script>
 import inputBox from "@/components/Inputbox/index";
-import { addScreen, getScreen } from "@/api/screen";
+import { addScreen, getScreen, addSeat, getSeat } from "@/api/screen";
 import {initSeatMap} from "./createSeat.js";
+import goBack from "@/components/Backone/index";
 export default {
   components: {
-    inputBox
+    inputBox,
+    goBack
   },
   data() {
     return {
@@ -153,19 +165,18 @@ export default {
       seatInit: {
         row: 5,
         col: 8,
-        rowSort: "tb",
-        colSort: "lr",
-        _id: "" //影厅id
+        rowSort: "bt",
+        colSort: "rl",
+        screen_id: "" //影厅id
       },
-      seatArr: []
+      seatArr: [],  //座位图
+      markCol:[], //列坐标
+      markRow:[]  //行坐标
     };
   },
   mounted() {
     this.cinema_id = this.$route.query.cinema_id || "";
     this.getScreenList();
-
-    this.seatArr = initSeatMap(this.seatInit).seatJson;
-    console.log(initSeatMap(this.seatInit).markCol);
   },
   methods: {
     //显示
@@ -199,17 +210,78 @@ export default {
       });
     },
     //获取影厅
-    getScreenList() {
-      getScreen({ cinema_id: this.cinema_id }).then(res => {
+    async getScreenList() {
+     await getScreen({ cinema_id: this.cinema_id}).then(res => {
         let { data } = res;
-        this.allScreenInfo = data;
-        this.currentScreenId = data[0]._id;
+        this.allScreenInfo = data.screen;
+        this.currentScreenId = this.seatInit.screen_id = data.screen[0]._id;
+        this.formatSeat(data.seat);
       });
+
     },
     //显示创建座位弹窗
     createSeats() {
       this.isSeatOrScreen = 1;
       this.isScreenBox = true;
+    },
+    //初始化座位图
+    initMap(){
+      let initRes = initSeatMap(this.seatInit);
+      this.seatArr = initRes.seatJson;
+      this.markCol = initRes.markCol;
+      this.markRow = initRes.markRow;
+      this.cancelScreen();
+    },
+    //画座位
+    drawSeat(ev){
+      let {_x,_y} = ev.target.dataset;
+      let getIsShow = this.seatArr[_y][_x-1];
+      getIsShow.is_show = getIsShow.is_show == 0 ? 1 : 0;
+    },
+    //提交座位
+    submitSeat(){
+      let arr = [];
+      for( let name in this.seatArr){
+        arr = arr.concat(this.seatArr[name]);
+      }
+      addSeat({seat:arr}).then(res=>{
+        let { msg } = res;
+        this.$message({
+          message: msg,
+          type: "success"
+        });
+      });
+    },
+    //回显座位格式处理
+    formatSeat(seatArr){
+      let len = seatArr.length;
+      let i = null;
+      let json = {};
+      let markCol = [];
+      let markRow = [];
+      for(i=0; i<len; i++){
+        if(json[seatArr[i].graph_row]){
+          json[seatArr[i].graph_row].push(seatArr[i]);
+        }else{
+          json[seatArr[i].graph_row] = [seatArr[i]];
+          markRow.push(seatArr[i].seat_row);
+        }
+        markCol.push(seatArr[i].seat_col);
+      }
+      this.markCol = [...new Set(markCol)];
+      this.markRow = markRow;
+      this.seatArr = json;
+    },
+    //切换影厅
+    changeScreen(screen_id){
+      this.currentScreenId = screen_id;
+      getSeat({screen_id}).then(res=>{
+        let { data ,code , msg} = res;
+        if(code == 1){
+          this.$message.error(msg);
+        }
+        this.formatSeat(data);
+      })
     }
   }
 };
@@ -291,8 +363,11 @@ export default {
   }
   .content-box {
     display: flex;
-    align-items: center;
+  
     justify-content: center;
+  }
+  .submit-btns{
+    padding: 20px;
   }
 }
 </style>

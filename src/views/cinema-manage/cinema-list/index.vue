@@ -127,7 +127,10 @@ export default {
     //排期
     inPlan(row){
       this.$router.push({
-        name:"plan"
+        name:"plan",
+        query:{
+          cinema_id:row._id
+        }
       });
     }
   }

@@ -116,3 +116,50 @@ export function param2Obj(url) {
 export function to0(n){
   return n*1 < 10 ? '0'+n : n;
 }
+
+/**
+ * 时间戳或GMT转时间
+ * @param {(string | dateGMT),string}
+ * timeStamp 时间戳或GMT格式日期
+ * format = YMD => 年-月-日 , Y=> 年 , M=>月 , D=>日 , YM => 年-月 , hms=> 时:分:秒 , YMDhms=> 年-月-日 时:分:秒 , YMDhm=> 年-月-日 时:分
+ */
+export const stampToTime = (date, format= "YMDhms") => {
+  let getDate = null;
+  if(Object.prototype.toString.call(date) == '[object Date]'){
+    //GMT
+    getDate = date;
+  }else{
+    //时间戳
+    getDate = date/1000000000 >= 1 ? date * 1000 : date;
+  }
+  
+  let oDate = new Date(getDate);
+  let Y = oDate.getFullYear();
+  let M = to0(oDate.getMonth() + 1);
+  let D = to0(oDate.getDate());
+  let h = to0(oDate.getHours());
+  let m = to0(oDate.getMinutes());
+  let s = to0(oDate.getSeconds());
+  
+  let oMap = new Map([
+    ["Y", Y],
+    ["M", M],
+    ["D", D],
+    ["h", h],
+    ["hm", `${h}:${m}`],
+    ["hms", `${h}:${m}:${s}`],
+    ["YM", `${Y}-${M}`],
+    ["YMD", `${Y}-${M}-${D}`],
+    ["YMDhms", `${Y}-${M}-${D} ${h}:${m}:${s}`],
+    ["YMDhm", `${Y}-${M}-${D} ${h}:${m}`]
+  ]);
+  return oMap.get(format);
+}
+
+/**
+ * 时间转时间戳
+ */
+export const timeToStamp = time => {
+  let newTime = time.replace(/-/g,'/')
+  return new Date(newTime).getTime();
+}
