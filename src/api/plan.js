@@ -22,6 +22,24 @@ export function addSession(data) {
 export function getSession(data) {
   return request({
     url: '/api/getSession',
+    method: 'get',
+    params:data
+  })
+}
+
+//删除排期
+export function delSession(data) {
+  return request({
+    url: '/api/delSession',
+    method: 'post',
+    data
+  })
+}
+
+//审核排期
+export function agreeSession(data) {
+  return request({
+    url: '/api/agreeSession',
     method: 'post',
     data
   })

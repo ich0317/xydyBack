@@ -13,8 +13,8 @@ export function addScreen(data) {
 export function getScreen(data) {
   return request({
     url: '/api/getScreen',
-    method: 'post',
-    data
+    method: 'get',
+    params:data
   })
 }
 

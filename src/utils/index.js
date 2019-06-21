@@ -125,12 +125,13 @@ export function to0(n){
  */
 export const stampToTime = (date, format= "YMDhms") => {
   let getDate = null;
+  console.warn(date);
   if(Object.prototype.toString.call(date) == '[object Date]'){
     //GMT
     getDate = date;
   }else{
     //时间戳
-    getDate = date/1000000000 >= 1 ? date * 1000 : date;
+    getDate = date/1000000000000 >= 1 ? date* 1000: date;
   }
   
   let oDate = new Date(getDate);
@@ -163,3 +164,20 @@ export const timeToStamp = time => {
   let newTime = time.replace(/-/g,'/')
   return new Date(newTime).getTime();
 }
+
+/**
+ * 数组里对象删除相同元素
+ * @param {array ,string, [object|string]}
+ * arr需要去重的数组  key对象里需要对比的 键 名  obj要对比的对象或者字符串
+ */
+export const rmSameObj = (arr, key, obj) => {
+  let _obj = obj[key] ? obj[key] : obj;
+  let _del = ""
+
+  arr.forEach((v, i) => {
+    if (v[key] == _obj) {
+        _del = arr.splice(i, 1);
+    }
+  });
+  return _del;
+};

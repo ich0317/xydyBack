@@ -40,12 +40,15 @@
               <el-form-item>
                 <el-button type="primary" @click="addFilm">{{isAdd ? '取消添加' : '添加影片'}}</el-button>
               </el-form-item>
+              <el-form-item>
+                <el-button @click="agree">审核影片</el-button>
+              </el-form-item>
             </el-form>
           </div>
         </div>
       </el-col>
     </el-row>
-    <div class="content-box">
+    <div class="content-box" element-loading-text="Loading" v-loading="listLoading">
       <div class="time-box">
         <div class="select-date">
           <el-date-picker
@@ -63,20 +66,23 @@
           </ul>
         </div>
       </div>
-
       <div class="screen-box" ref="screenbox">
-        <div class="screen-bar clearfix" v-for="(v,idx) in formatSession" :key="idx">
+        <div class="screen-bar clearfix" v-for="(v,idx) in screenList" :key="idx">
           <div class="screen-name">{{v.screen_name}}</div>
           <div class="lines" ref="lines" :data-screenid="v._id">
             <ul class="time-item clearfix">
               <li v-for="(item,index) in effectiveTimeLong.length * 2" :key="index"></li>
             </ul>
-
+            <div class="time-progress"></div>
             <div
               class="drag-film"
               v-for="(item,index) in v.children"
               :key="'a'+index"
               :style="{left:item._start_time+'px',width:item.film_long+'px'}"
+              :class="'flimStatus'+ item.status"
+              :id="item._id"
+              @contextmenu.stop="setRightClick($event,idx,index)"
+              @click.stop="tapSelect(item.screen_id,item._id,item.status)"
             >
               <dl class="drag-film-content">
                 <dt>{{item.film_name}}</dt>
@@ -84,35 +90,23 @@
                 <dd>{{item.film_version}} {{item.language}}</dd>
                 <dd>{{item.sell_price}}元</dd>
               </dl>
+              <div class="setbox" v-show="item._isSetShow">
+                <p @click.stop="delPlan(item.screen_id,item._id)">删除</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- 落下框 -->
-        <!-- <div
-          class="drag-film"
-          v-for="(item,index) in saveFilm"
-          :key="'a'+index"
-          :style="{left:item._start_time+'px',top:item._t+'px',width:item.film_long+'px'}"
-        >
-          <dl class="drag-film-content">
-            <dt>{{item.film_name}}</dt>
-            <dd>{{item.start_datetime}}-{{item.end_datetime}}</dd>
-            <dd>{{item.film_version}} {{item.language}}</dd>
-            <dd>{{item.sell_price}}元</dd>
-          </dl>
-        </div>-->
-
-        <!-- 拖拽框                            -->
+        <!-- 拖拽框-->
         <div
-          class="drag-film"
+          class="drag-film flimStatus0"
           ref="drag"
           :style="{left:filmPos.pointXCenter+'px',top:filmPos.pointYCenter+'px',width:dragFilm.film_long+'px'}"
           @click="downFilm"
         >
           <dl class="drag-film-content">
             <dt>{{dragFilm.film_name}}</dt>
-            <dd>{{dragFilm._start_time}}-{{dragFilm._end_time}}</dd>
+            <dd>{{dragFilm.start_time}}-{{dragFilm.end_time}}</dd>
             <dd>{{dragFilm.film_version}} {{dragFilm.language}}</dd>
             <dd>{{dragFilm.sell_price}}元</dd>
           </dl>
@@ -123,13 +117,20 @@
         ></div>
       </div>
     </div>
+   
   </div>
 </template>
 
 <script>
-import { searchFilm, addSession, getSession } from "@/api/plan";
+import {
+  searchFilm,
+  addSession,
+  getSession,
+  delSession,
+  agreeSession
+} from "@/api/plan";
 import { getScreen } from "@/api/screen";
-import { to0, stampToTime, timeToStamp } from "@/utils/index";
+import { to0, stampToTime, timeToStamp, rmSameObj } from "@/utils/index";
 export default {
   data() {
     return {
@@ -157,37 +158,25 @@ export default {
         sell_price: ""
       },
       isAdd: false, //是否添加影片
-      saveFilm: [], //存贮已落下的电影
-      screenList: null,
+      saveFilm: [], //存贮已落下的排期和获取的排期
+      screenList: [], //影厅和排期
       cinema_id: null,
-      linshi: []
+      agreeFilm: [] //待审核影片
     };
   },
   mounted() {
     this.cinema_id = this.$route.query.cinema_id;
+   
     this.initConfig.startPointStamp =
       timeToStamp(
         `${stampToTime(this.nowDate, "YMD")} ${this.initConfig.startPoint}:0:0`
       ) / 1000;
+    // let getNow = stampToTime();
+    // console.log(getNow);
     this.initTable(this.initConfig);
     this.getScreenList();
-    this.getSessionList();
   },
-  computed: {
-    formatSession:function(){
-      let aaa= this.screenList;
-      for( let i=0; i < aaa.length; i++){
-          aaa[i].children = [];
-          for(let j = 0; j<this.saveFilm.length; j++){
-            if(aaa[i]._id == this.saveFilm[j].screen_id){
-              this.saveFilm[j]._start_time = (timeToStamp(this.saveFilm[j].start_datetime) / 1000 - this.initConfig.startPointStamp) / 60
-              aaa[i].children.push(this.saveFilm[j]);
-            }
-          }
-        }
-      return aaa;
-    }
-  },
+  computed: {},
   methods: {
     //初始化时间轴
     initTable(params) {
@@ -199,52 +188,44 @@ export default {
     },
     //获取影厅
     async getScreenList() {
-      let screenList = await getScreen({ cinema_id: this.cinema_id }).then(res => {
+      this.listLoading = true;
+      let screenList = await getScreen({ cinema_id: this.cinema_id }).then(
+        res => {
+          let { data } = res;
+          return data.screen;
+        }
+      );
+  
+      getSession({ cinema_id: this.cinema_id,start_datetime:`${stampToTime(this.nowDate,'YMD')}`}).then(res => {
         let { data } = res;
-        this.screenList = data.screen;
-        return data.screen;
-      });
-
-      getSession({ cinema_id: this.cinema_id }).then(res => {
-        let { data } = res;
-        for( let i=0; i < screenList.length; i++){
+        for (let i = 0; i < screenList.length; i++) {
           screenList[i].children = [];
-          for(let j = 0; j<data.length; j++){
-            if(screenList[i]._id == data[j].screen_id){
-              data[j]._start_time = (timeToStamp(data[j].start_datetime) / 1000 - this.initConfig.startPointStamp) / 60
+          for (let j = 0; j < data.length; j++) {
+            if (screenList[i]._id == data[j].screen_id) {
+              data[j]._start_time =
+                parseInt((timeToStamp(data[j].start_datetime) / 1000 -
+                  this.initConfig.startPointStamp) /
+                60);
+
+              data[j]._isSetShow = false;
               screenList[i].children.push(data[j]);
             }
           }
         }
-        this.saveFilm = data;  
-        this.linshi = screenList;
+        
+        this.saveFilm = data;
+        this.screenList = screenList;
+        this.listLoading = false;
       });
     },
-    //获取排期
-    getSessionList() {
-      getSession({ cinema_id: this.cinema_id }).then(res => {
-        let { data } = res;
-        //         _start_time: 175
-        // _t: 81
 
-        // data.forEach(v=>{
-        //   v.start_time = stampToTime(timeToStamp(v.start_datetime),'hm');
-        //   v.end_time = stampToTime(timeToStamp(v.end_datetime),'hm');
-        //   v._t = 0;
-        //   v._start_time = 100;
-        //   console.warn(timeToStamp(v.start_datetime), timeToStamp(v.start_datetime));
-        // })
-        // this.saveFilm = data;
-        // console.log(data);
-      });
-    },
     drapMove(ev) {
       if (!this.isAdd) return;
       let { pageX, pageY } = ev;
       let screenbox = this.$refs.screenbox; //整体影厅框
       let oDrag = this.$refs.drag; //影片浮层
       let oLine = this.$refs.lines[0]; //单个时间条
-      let boxHeight = screenbox.offsetHeight || ""; //整体影厅高度
+      let boxHeight = screenbox.offsetHeight; //整体影厅高度
       let lineWidth = this.effectiveTimeLong.length * 162; //整体影厅宽度
       let { top, left } = this.getPos(screenbox); //整体影厅位置
       let $left = this.getPos(oLine).left; //单个时间条位置
@@ -255,7 +236,7 @@ export default {
         pageY <= top ||
         pageY >= top + boxHeight
       ) {
-        //时间条外部
+        //时间条外部 隐藏
         this.filmPos = { pointXCenter: -9999, pointYCenter: 0 };
       } else {
         let pointX = pageX - $left;
@@ -282,26 +263,12 @@ export default {
           let getCurrentStamp =
             this.initConfig.startPointStamp + pointXCenter * 60;
 
-          this.dragFilm._start_time = stampToTime(getCurrentStamp, "hm");
-          this.dragFilm._end_time = stampToTime(
+          this.dragFilm.start_time = stampToTime(getCurrentStamp, "hm");
+          this.dragFilm.end_time = stampToTime(
             this.dragFilm.film_long * 60 + getCurrentStamp,
             "hm"
           );
-
-          // nowStopTime = this.defaultStopTime + pointXCenter * 60;
-          // this.dragFilm._start_time = pointXCenter + 170; //落下left time
-
-          // let startH = parseInt(nowStopTime / 3600);
-          // let startM = to0((nowStopTime % 3600) / 60);
-          // this.dragFilm.start_time = `${startH}:${startM}`;
-
-          // let endH = parseInt(
-          //   (nowStopTime + this.dragFilm.film_long * 60) / 3600
-          // );
-          // let endM = to0(
-          //   ((nowStopTime + this.dragFilm.film_long * 60) % 3600) / 60
-          // );
-          // this.dragFilm.end_time = `${endH}:${endM}`;
+          this.dragFilm._start_time = parseInt(pointXCenter); //落下left time
         }
         let n = parseInt(pointY / 81);
         let pointYCenter = n * 81;
@@ -319,7 +286,6 @@ export default {
       this.searchInfo.film_version = "";
       this.searchInfo.languageArr = val.language.split("/");
       this.searchInfo.film_versionArr = val.film_version.split("/");
-
       this.dragFilm = val;
       this.dragFilm.film_id = val._id;
       delete this.dragFilm._id;
@@ -358,18 +324,25 @@ export default {
     //落下影片
     downFilm() {
       if (this.filmRepeat(this.saveFilm, { ...this.dragFilm }) == 0) {
-        this.dragFilm.cinema_id = this.cinema_id;
-        this.dragFilm.start_datetime = `${stampToTime(this.nowDate, "YMD")} ${
-          this.dragFilm.start_time
+        let oDragFilm = { ...this.dragFilm };
+        oDragFilm.cinema_id = this.cinema_id;
+        oDragFilm.status = 0;
+        oDragFilm.start_datetime = `${stampToTime(this.nowDate, "YMD")} ${
+          oDragFilm.start_time
         }`;
-        this.dragFilm.end_datetime = `${stampToTime(this.nowDate, "YMD")} ${
-          this.dragFilm.end_time
+        oDragFilm.end_datetime = `${stampToTime(this.nowDate, "YMD")} ${
+          oDragFilm.end_time
         }`;
-        this.saveFilm.push({ ...this.dragFilm });
-        console.log(this.dragFilm);
-        // addSession({ ...this.dragFilm }).then(res=>{
 
-        // });
+        addSession(oDragFilm).then(res => {
+          this.saveFilm._isSetShow = false;
+          this.saveFilm.push(oDragFilm);
+          this.screenList.forEach(v => {
+            if (v._id == oDragFilm.screen_id) {
+              v.children.push(oDragFilm);
+            }
+          });
+        });
       }
     },
     //验证重复落下
@@ -380,7 +353,6 @@ export default {
         let oldendTime = oldStartTime + v.film_long;
         let newStartTime = newArr._start_time * 1;
         let newEndTime = newStartTime + v.film_long;
-
         if (
           v.screen_id == newArr.screen_id &&
           ((newStartTime >= oldStartTime && newStartTime <= oldendTime) ||
@@ -392,8 +364,87 @@ export default {
       });
       return count;
     },
+    //右键
+    setRightClick(ev, idx, index) {
+      ev.preventDefault();
+      let clickData = this.screenList[idx].children[index];
+      clickData._isSetShow = !clickData._isSetShow;
+    },
+    //删除影片
+    delPlan(screen_id, _id) {
+      this.$confirm(`群定要删除该排期吗?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(() => {
+        delSession({ _id }).then(res => {
+          this.$message({
+            message: res.msg,
+            type: "success"
+          });
+
+          this.saveFilm.forEach((v, i) => {
+            if (v._id == _id) {
+              this.saveFilm.splice(i, 1);
+            }
+          });
+          this.screenList.forEach(v => {
+            if (v._id == screen_id) {
+              v.children.forEach((item, i) => {
+                if (item._id == _id) {
+                  v.children.splice(i, 1);
+                }
+              });
+            }
+          });
+        });
+      });
+    },
+    //审核
+    agree() {
+      if(this.agreeFilm.length == 0){
+        this.$message({
+          message: "请先选择影片",
+          type: "error"
+        });
+        return;
+      };
+      let arr = this.agreeFilm.map(v => v._id);
+      agreeSession(arr).then(res => {
+        this.$message({
+          message: res.msg,
+          type: "success"
+        });
+        this.getScreenList();
+      });
+    },
+    //点选排期
+    tapSelect(screen_id, _id,status) {
+      if(status != 0)return;
+      let delObj = rmSameObj(this.agreeFilm, "_id", { screen_id, _id });
+      let aD = document.querySelectorAll(".drag-film");
+      if (!delObj) {
+        this.agreeFilm.push({ screen_id, _id });
+        for (let i = 0; i < aD.length; i++) {
+          if (aD[i].getAttribute("id") == _id) {
+            aD[i].className = aD[i].className + " bd";
+          }
+        }
+      } else {
+        for (let i = 0; i < aD.length; i++) {
+          if (aD[i].getAttribute("id") == delObj[0]._id) {
+            aD[i].className = aD[i].className.replace(/\sbd/g, "");
+          }
+        }
+      }
+    },
+    //切换日期
     getSelectData(val) {
-      let oDate = new Date(val);
+      this.initConfig.startPointStamp =
+      timeToStamp(
+        `${stampToTime(this.nowDate, "YMD")} ${this.initConfig.startPoint}:0:0`
+      ) / 1000;
+      this.getScreenList();
     },
     getPos(obj) {
       var top = 0;
@@ -406,7 +457,6 @@ export default {
       return { left, top };
     }
   },
- 
   filters: {
     //时间戳转时间
     getHm: function(val) {
@@ -468,13 +518,24 @@ export default {
     border-right: 1px solid #ddd;
   }
   .drag-film {
-    border: 1px solid #ff9797;
-    background: rgba(255, 210, 210, 0.8);
     height: 80px;
     width: 150px;
     position: absolute;
     left: -9999px;
     top: 0;
+  }
+  .flimStatus0 {
+    background: rgba(255, 210, 210, 0.8);
+    border: 1px solid #ff9797;
+  }
+  .flimStatus1 {
+    background: rgba(200, 242, 198, 0.8);
+    border: 1px solid #a3dfa1;
+  }
+  .flimStatus2,
+  .flimStatus3 {
+    background: rgba(239, 239, 239, 0.8);
+    border: 1px solid #bbbbbb;
   }
   .drag-film-content {
     padding: 4px 5px 2px;
@@ -503,6 +564,35 @@ export default {
     position: absolute;
     left: 0;
     top: 0;
+  }
+  .setbox {
+    background: #fff;
+    width: 40px;
+    position: absolute;
+    right: -42px;
+    top: -1px;
+    font-size: 12px;
+    text-align: center;
+    padding: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    z-index: 99;
+    p {
+      padding: 4px 0;
+      cursor: pointer;
+      &:hover {
+        color: #666;
+      }
+    }
+  }
+  .bd {
+    border-width: 2px;
+  }
+  .time-progress{
+    position: absolute; left: 0; top: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.06);
+    width: 0;
   }
 }
 </style>
