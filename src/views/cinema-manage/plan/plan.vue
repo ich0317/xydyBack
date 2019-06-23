@@ -40,9 +40,7 @@
               <el-form-item>
                 <el-button type="primary" @click="addFilm">{{isAdd ? '取消添加' : '添加影片'}}</el-button>
               </el-form-item>
-              <el-form-item>
-                <el-button @click="agree">审核影片</el-button>
-              </el-form-item>
+
             </el-form>
           </div>
         </div>
@@ -115,9 +113,16 @@
           class="mark-line"
           :style="{left:filmPos.pointXCenter+'px',top:0,height:filmPos.pointYCenter*81+'px'}"
         ></div>
+        
       </div>
+      
     </div>
-   
+    <div class="plan-page-btns">
+      <goBack></goBack>
+     
+      <el-button type="warning" size="medium" @click="agree" v-if="saveFilm.length != 0">审核影片</el-button>
+    </div>
+    
   </div>
 </template>
 
@@ -125,13 +130,16 @@
 import {
   searchFilm,
   addSession,
-  getSession,
+  getScreenSession,
   delSession,
   agreeSession
 } from "@/api/plan";
-import { getScreen } from "@/api/screen";
 import { to0, stampToTime, timeToStamp, rmSameObj } from "@/utils/index";
+import goBack from "@/components/Backone/index";
 export default {
+  components:{
+    goBack
+  },
   data() {
     return {
       listLoading: true,
@@ -162,6 +170,7 @@ export default {
       screenList: [], //影厅和排期
       cinema_id: null,
       agreeFilm: [] //待审核影片
+ 
     };
   },
   mounted() {
@@ -171,8 +180,6 @@ export default {
       timeToStamp(
         `${stampToTime(this.nowDate, "YMD")} ${this.initConfig.startPoint}:0:0`
       ) / 1000;
-    // let getNow = stampToTime();
-    // console.log(getNow);
     this.initTable(this.initConfig);
     this.getScreenList();
   },
@@ -189,32 +196,34 @@ export default {
     //获取影厅
     async getScreenList() {
       this.listLoading = true;
-      let screenList = await getScreen({ cinema_id: this.cinema_id }).then(
-        res => {
-          let { data } = res;
-          return data.screen;
+      getScreenSession({ cinema_id: this.cinema_id,start_datetime:`${stampToTime(this.nowDate,'YMD')}`}).then(res => {
+        let { data, code, msg } = res;
+        let aScreen = data.screen;
+
+        if(aScreen.length == 0){
+          this.$message({
+            message: msg,
+            type: "error"
+          });
         }
-      );
-  
-      getSession({ cinema_id: this.cinema_id,start_datetime:`${stampToTime(this.nowDate,'YMD')}`}).then(res => {
-        let { data } = res;
-        for (let i = 0; i < screenList.length; i++) {
-          screenList[i].children = [];
-          for (let j = 0; j < data.length; j++) {
-            if (screenList[i]._id == data[j].screen_id) {
-              data[j]._start_time =
-                parseInt((timeToStamp(data[j].start_datetime) / 1000 -
+        let aSession = data.session;
+        for (let i = 0; i < aScreen.length; i++) {
+          aScreen[i].children = [];
+          for (let j = 0; j < aSession.length; j++) {
+            if (aScreen[i]._id == aSession[j].screen_id) {
+              aSession[j]._start_time =
+                parseInt((timeToStamp(aSession[j].start_datetime) / 1000 -
                   this.initConfig.startPointStamp) /
                 60);
 
-              data[j]._isSetShow = false;
-              screenList[i].children.push(data[j]);
+              aSession[j]._isSetShow = false;
+              aScreen[i].children.push(aSession[j]);
             }
           }
         }
-        
-        this.saveFilm = data;
-        this.screenList = screenList;
+
+        this.saveFilm = aSession;
+        this.screenList = aScreen;
         this.listLoading = false;
       });
     },
@@ -244,7 +253,7 @@ export default {
         let pointXCenter = null; //left坐标 == 分钟
         //每移动走5分钟
 
-        if (pointX % 5 == 0) {
+        if (pointX % 5 == 0) {}
           //170影厅名称模块的宽度
           pointXCenter = pointX - oDrag.offsetWidth / 2;
           let nowStopTime = 0;
@@ -269,7 +278,8 @@ export default {
             "hm"
           );
           this.dragFilm._start_time = parseInt(pointXCenter); //落下left time
-        }
+          
+        
         let n = parseInt(pointY / 81);
         let pointYCenter = n * 81;
         if (this.screenList[n]) {
@@ -415,6 +425,7 @@ export default {
           message: res.msg,
           type: "success"
         });
+        this.agreeFilm = [];
         this.getScreenList();
       });
     },
@@ -593,6 +604,9 @@ export default {
     bottom: 0;
     background: rgba(0,0,0,0.06);
     width: 0;
+  }
+  .plan-page-btns{
+    padding: 0 0 0 20px;
   }
 }
 </style>

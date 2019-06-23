@@ -17,7 +17,7 @@
                   start-placeholder="开始日期"
                   end-placeholder="结束日期"
                   value-format="yyyy-MM-dd"
-                   size="medium"
+                  size="medium"
                 ></el-date-picker>
               </el-form-item>
               <el-form-item>
@@ -30,7 +30,13 @@
       </el-col>
     </el-row>
     <div class="content-box">
-      <el-table :data="list" stripe style="width: 100%" element-loading-text="Loading" v-loading="listLoading">
+      <el-table
+        :data="list"
+        stripe
+        style="width: 100%"
+        element-loading-text="Loading"
+        v-loading="listLoading"
+      >
         <el-table-column prop="film_name" label="影片名称" width="220"></el-table-column>
         <el-table-column prop="release_date" label="上映日期" width="150"></el-table-column>
         <el-table-column prop="language" label="语言" width="150"></el-table-column>
@@ -44,22 +50,38 @@
         </el-table-column>
       </el-table>
     </div>
+    <div class="page-wrap">
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        @current-change="changePage"
+        :current-page="pageInfo.page"
+        :page-size="pageInfo.page_size"
+        :total="pageInfo.total"
+      ></el-pagination>
+    </div>
   </div>
 </template>
 
 <script>
 import { getFilmList, delFilm } from "@/api/film";
+import { stampToTime } from "@/utils/index";
 export default {
-  filters: {},
   data() {
     return {
       list: null,
       listLoading: true,
       searchCond: {
-        film_name:'',
-        release_date:[]
-      } 
-    }
+        film_name: "",
+        release_date: []
+      },
+      //分页信息
+      pageInfo: {
+        total: 0,
+        page_size: 5,
+        page: 1
+      }
+    };
   },
   mounted() {
     this.getFilmListData();
@@ -73,44 +95,54 @@ export default {
     },
     //获取影片
     getFilmListData(searchCond = {}) {
-      this.listLoading=true;
-      getFilmList(searchCond).then(res => {
-        let { msg, data } = res;
-        this.list = data;
-        this.listLoading=false;
+      this.listLoading = true;
+      getFilmList({ ...searchCond, ...this.pageInfo }).then(res => {
+        let { msg, data,code } = res;
+      
+        data.film.forEach(v => {
+          v.release_date = stampToTime(v.release_date, "YMD");
+        });
+        this.list = data.film;
+        this.pageInfo.total = data.total;
+        this.listLoading = false;
       });
     },
     //搜索
-    search(){
+    search() {
+      this.pageInfo.page = 1;
       this.getFilmListData(this.searchCond);
     },
     //编辑
-    edit(row){
+    edit(row) {
       this.$router.push({
-        name:'film-detail',
-        query:{_id:row._id}
+        name: "film-detail",
+        query: { _id: row._id }
       });
     },
     //删除
-    del(row){
+    del(row) {
       this.$confirm(`群定要删除${row.film_name}?`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
-      })
-        .then(() => {
-          delFilm({ _id: row._id }).then(res => {
-            let { data, msg } = res;
-            this.$message({
-              message: msg,
-              type: "success"
-            });
-            this.getFilmListData();
+      }).then(() => {
+        delFilm({ _id: row._id }).then(res => {
+          let { data, msg } = res;
+          this.$message({
+            message: msg,
+            type: "success"
           });
-        })
+          this.getFilmListData();
+        });
+      });
+    },
+    //分页
+    changePage(val) {
+      this.pageInfo.page = val;
+      this.getFilmListData();
     }
   }
-}
+};
 </script>
 <style lang="scss">
 </style>

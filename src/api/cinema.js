@@ -9,9 +9,9 @@ export function addCollege(data) {
   })
 }
 //获取学校
-export function getCollegeList(data) {
+export function getCollege(data) {
   return request({
-    url: '/api/getCollegeList',
+    url: '/api/getCollege',
     method: 'get',
     params:data
   })

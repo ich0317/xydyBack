@@ -6,66 +6,65 @@
           <div class="pan-form">
             <el-form inline class="demo-form-inline">
               <el-form-item>
-                <goBack></goBack>
-              </el-form-item>
-              <el-form-item>
                 <el-button type="success" size="medium" @click="addScreen">添加影厅</el-button>
               </el-form-item>
               <el-form-item>
                 <el-button type="info" size="medium" @click="createSeats">创建座位图</el-button>
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" size="medium" @click="submitSeat">保存</el-button>
               </el-form-item>
             </el-form>
           </div>
         </div>
       </el-col>
     </el-row>
-    <div class="screen-name-bar">
-      <span
-        v-for="(item,index) in allScreenInfo"
-        :key="index"
-        :class="{active: currentScreenId == item._id}"
-        @click="changeScreen(item._id)"
-      >{{item.screen_name}}</span>
+    <div class="map-box">
+      <div class="screen-name-bar">
+        <span
+          v-for="(item,index) in allScreenInfo"
+          :key="index"
+          :class="{active: currentScreenId == item._id}"
+          @click="changeScreen(item._id)"
+        >{{item.screen_name}}</span>
+      </div>
+      <div class="screen-name-show">
+        <span
+          v-if="item._id == currentScreenId"
+          v-for="(item,index) in allScreenInfo"
+          :key="index"
+        >{{ item.screen_name }}</span>
+      </div>
+      <div class="content-box" style="min-height:400px;">
+        <table width="auto">
+          <tr>
+            <td width="40" height="34">&nbsp;</td>
+            <td>
+              <span class="mark-col" v-for="(item,index) in markCol" :key="index">{{item}}</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span class="mark-row" v-for="(item,index) in markRow" :key="index">{{item}}</span>
+            </td>
+            <td>
+              <div v-for="(item,index) in seatArr" :key="index" class="row-cloumn">
+                <span
+                  v-for="(v,idx) in item"
+                  :key="idx"
+                  class="col-cloumn"
+                  :style="{opacity:v.is_show == 0 ? '0' : '1'}"
+                  :data-_x="v.graph_col"
+                  :data-_y="v.graph_row"
+                  @click="drawSeat($event)"
+                >{{v.seat_row}}排{{v.seat_col}}</span>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
     </div>
-    <div class="screen-name-show">
-      <span
-        v-if="item._id == currentScreenId"
-        v-for="(item,index) in allScreenInfo"
-        :key="index"
-      >{{ item.screen_name }}</span>
+    <div style="position:absolute; left:20px; bottom:40px;">
+      <goBack></goBack>
+      <el-button type="primary" size="medium" v-show="seatArr.length != 0" @click="submitSeat">保存</el-button>
     </div>
-    <div class="content-box">
-      <table width="auto">
-        <tr>
-          <td width="40" height="34">&nbsp;</td>
-          <td>
-            <span class="mark-col" v-for="(item,index) in markCol" :key="index">{{item}}</span>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <span class="mark-row" v-for="(item,index) in markRow" :key="index">{{item}}</span>
-          </td>
-          <td>
-            <div v-for="(item,index) in seatArr" :key="index" class="row-cloumn">
-              <span
-                v-for="(v,idx) in item"
-                :key="idx"
-                class="col-cloumn"
-                :style="{opacity:v.is_show == 0 ? '0' : '1'}"
-                :data-_x="v.graph_col"
-                :data-_y="v.graph_row"
-                @click="drawSeat($event)"
-              >{{v.seat_row}}排{{v.seat_col}}</span>
-            </div>
-          </td>
-        </tr>
-      </table>
-    </div>
-    
     <!-- seat_no":"40111","seat_code":"9ada3e069bd4b74f","graph_col":"1","graph_row":"1","seat_col":"16","seat_row":"11","seat_status":0 -->
     <!-- //（0 可售、1 已售、2 锁定、3 不可售、4 已选） -->
     <inputBox :isBoxShow.sync="isScreenBox" @hideBox="dataHide" :title="boxTitle">
@@ -130,14 +129,13 @@
         </el-form>
       </div>
     </inputBox>
-
   </div>
 </template>
 
 <script>
 import inputBox from "@/components/Inputbox/index";
 import { addScreen, getScreen, addSeat, getSeat } from "@/api/screen";
-import {initSeatMap} from "./createSeat.js";
+import { initSeatMap } from "./createSeat.js";
 import goBack from "@/components/Backone/index";
 export default {
   components: {
@@ -169,9 +167,9 @@ export default {
         colSort: "rl",
         screen_id: "" //影厅id
       },
-      seatArr: [],  //座位图
-      markCol:[], //列坐标
-      markRow:[]  //行坐标
+      seatArr: [], //座位图
+      markCol: [], //列坐标
+      markRow: [] //行坐标
     };
   },
   mounted() {
@@ -209,15 +207,22 @@ export default {
         });
       });
     },
-    //获取影厅
+    //获取影厅和默认座位
     async getScreenList() {
-     await getScreen({ cinema_id: this.cinema_id}).then(res => {
-        let { data } = res;
-        this.allScreenInfo = data.screen;
-        this.currentScreenId = this.seatInit.screen_id = data.screen[0]._id;
-        this.formatSeat(data.seat);
+      await getScreen({ cinema_id: this.cinema_id }).then(res => {
+        let { data, code, msg } = res;
+        if(code == 1){
+          this.$message({
+            message: msg,
+            type: "error"
+          });
+        }else{
+          this.allScreenInfo = data.screen;
+          this.currentScreenId = this.seatInit.screen_id = data.screen[0]._id;
+          this.formatSeat(data.seat);
+        }
+        
       });
-
     },
     //显示创建座位弹窗
     createSeats() {
@@ -225,7 +230,7 @@ export default {
       this.isScreenBox = true;
     },
     //初始化座位图
-    initMap(){
+    initMap() {
       let initRes = initSeatMap(this.seatInit);
       this.seatArr = initRes.seatJson;
       this.markCol = initRes.markCol;
@@ -233,18 +238,18 @@ export default {
       this.cancelScreen();
     },
     //画座位
-    drawSeat(ev){
-      let {_x,_y} = ev.target.dataset;
-      let getIsShow = this.seatArr[_y][_x-1];
+    drawSeat(ev) {
+      let { _x, _y } = ev.target.dataset;
+      let getIsShow = this.seatArr[_y][_x - 1];
       getIsShow.is_show = getIsShow.is_show == 0 ? 1 : 0;
     },
     //提交座位
-    submitSeat(){
+    submitSeat() {
       let arr = [];
-      for( let name in this.seatArr){
+      for (let name in this.seatArr) {
         arr = arr.concat(this.seatArr[name]);
       }
-      addSeat({seat:arr}).then(res=>{
+      addSeat({ seat: arr }).then(res => {
         let { msg } = res;
         this.$message({
           message: msg,
@@ -253,16 +258,16 @@ export default {
       });
     },
     //回显座位格式处理
-    formatSeat(seatArr){
+    formatSeat(seatArr) {
       let len = seatArr.length;
       let i = null;
       let json = {};
       let markCol = [];
       let markRow = [];
-      for(i=0; i<len; i++){
-        if(json[seatArr[i].graph_row]){
+      for (i = 0; i < len; i++) {
+        if (json[seatArr[i].graph_row]) {
           json[seatArr[i].graph_row].push(seatArr[i]);
-        }else{
+        } else {
           json[seatArr[i].graph_row] = [seatArr[i]];
           markRow.push(seatArr[i].seat_row);
         }
@@ -273,21 +278,27 @@ export default {
       this.seatArr = json;
     },
     //切换影厅
-    changeScreen(screen_id){
+    changeScreen(screen_id) {
       this.currentScreenId = screen_id;
-      getSeat({screen_id}).then(res=>{
-        let { data ,code , msg} = res;
-        if(code == 1){
+      getSeat({ screen_id }).then(res => {
+        let { data, code, msg } = res;
+        if (code == 1) {
           this.$message.error(msg);
         }
         this.formatSeat(data);
-      })
+      });
     }
   }
 };
 </script>
 <style lang="scss">
 #createseat {
+  background: #f8f8f8;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   .el-form-item__label {
     padding: 0;
     line-height: 2;
@@ -363,11 +374,20 @@ export default {
   }
   .content-box {
     display: flex;
-  
+
     justify-content: center;
   }
-  .submit-btns{
+  .submit-btns {
     padding: 20px;
+  }
+  .map-box{
+    position: absolute;
+    top: 80px;
+    left: 0;
+    right: 0;
+    bottom: 100px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
   }
 }
 </style>

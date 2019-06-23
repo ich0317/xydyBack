@@ -19,7 +19,13 @@
       </el-col>
     </el-row>
     <div class="content-box">
-      <el-table :data="list" stripe style="width: 100%" element-loading-text="Loading" v-loading="listLoading">
+      <el-table
+        :data="list"
+        stripe
+        style="width: 100%"
+        element-loading-text="Loading"
+        v-loading="listLoading"
+      >
         <el-table-column prop="college_name" label="学校名称" width="220"></el-table-column>
         <el-table-column prop="province" label="省" width="150"></el-table-column>
         <el-table-column prop="city" label="市" width="150"></el-table-column>
@@ -33,29 +39,39 @@
         </el-table-column>
       </el-table>
     </div>
+    <div class="page-wrap">
+      <el-pagination background layout="prev, pager, next" @current-change="changePage" :current-page="pageInfo.page" :page-size="pageInfo.page_size" :total="pageInfo.total"></el-pagination>
+    </div>
   </div>
 </template>
 
 <script>
-import { getCollegeList, delCollege } from "@/api/cinema";
+import { getCollege, delCollege } from "@/api/cinema";
 export default {
   data() {
     return {
-      list: null,
+      list: null, //数据
       listLoading: true,
-      searchName:null //搜索关键字
-    }
+      searchName: null, //搜索关键字
+      //分页信息
+      pageInfo:{
+        total:0,
+        page_size:8,
+        page:1
+      }
+    };
   },
-  created() {
+  mounted() {
     this.fetchData();
   },
   methods: {
     //获取
     fetchData(searchName = "") {
       this.listLoading = true;
-      getCollegeList({college_name:searchName}).then(res => {
+      getCollege({ college_name: searchName , ...this.pageInfo}).then(res => {
         let { data, msg } = res;
-        this.list = data;
+        this.list = data.college;
+        this.pageInfo.total = data.total;
         this.listLoading = false;
       });
     },
@@ -92,20 +108,26 @@ export default {
         .catch(() => {});
     },
     //查询
-    searchCollege(){
+    searchCollege() {
+      this.pageInfo.page = 1;
       this.fetchData(this.searchName);
     },
     //进入影院
-    inCinema(row){
+    inCinema(row) {
       this.$router.push({
-        name:"cinema-list",
-        query:{
-          college_id:row._id
+        name: "cinema-list",
+        query: {
+          college_id: row._id
         }
       });
+    },
+    //分页
+    changePage(val){
+      this.pageInfo.page = val;
+      this.fetchData();
     }
   }
-}
+};
 </script>
 <style lang="scss">
 </style>

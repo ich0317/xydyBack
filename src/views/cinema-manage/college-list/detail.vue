@@ -23,8 +23,9 @@
           <div id="container" ref="container"></div>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" size="medium" @click="onSubmit">保存</el-button>
           <goBack></goBack>
+          <el-button type="primary" size="medium" @click="onSubmit">保存</el-button>
+          
         </el-form-item>
       </el-form>
     </div>
@@ -94,13 +95,7 @@ export default {
           message: msg,
           type: 'success'
         });
-        this.collegeInfo={
-          college_name:'',
-          area:[],
-          address:'',
-          mark:'',
-          college_id:""
-        }
+        this.$router.go(-1);
       })
     }
   }

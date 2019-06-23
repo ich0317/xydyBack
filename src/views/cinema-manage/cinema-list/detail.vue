@@ -66,6 +66,7 @@ export default {
           message: msg,
           type: 'success'
         });
+        this.$router.go(-1);
       })
     },
     //编辑

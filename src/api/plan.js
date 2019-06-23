@@ -18,10 +18,10 @@ export function addSession(data) {
   })
 }
 
-//获取排期
-export function getSession(data) {
+//获取影厅和排期
+export function getScreenSession(data) {
   return request({
-    url: '/api/getSession',
+    url: '/api/getScreenSession',
     method: 'get',
     params:data
   })

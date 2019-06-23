@@ -8,7 +8,7 @@
       </el-col>
     </el-row>
     <div class="content-box">
-      <el-form ref="form" label-width="110px" style="width:560px;">
+      <el-form ref="form" label-width="110px" style="width:700px;">
         <el-form-item label="影片名称">
           <el-input v-model="filmInfo.film_name"></el-input>
         </el-form-item>
@@ -84,7 +84,7 @@
                 v-model="filmInfo.release_date"
                 type="date"
                 placeholder="上映日期"
-                style="width:170px;"
+                style="width:240px;"
                 value-format="yyyy-MM-dd"
               ></el-date-picker>
             </el-form-item>
@@ -109,8 +109,9 @@
           </el-upload>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" size="medium" @click="addFilmData">保存</el-button>
           <goBack></goBack>
+          <el-button type="primary" size="medium" @click="addFilmData">保存</el-button>
+          
         </el-form-item>
       </el-form>
     </div>
@@ -169,6 +170,7 @@ export default {
           message: msg,
           type: "success"
         });
+        this.$router.go(-1);
       });
     },
     //获取影片信息

@@ -11,7 +11,8 @@
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" size="medium" @click="search" v-if="!college_id">查询</el-button>
-                <el-button @click="addCinema" size="medium" v-if="college_id">添加影院</el-button>
+                <goBack v-if="college_id"></goBack>
+                <el-button type="primary" @click="addCinema" size="medium" v-if="college_id">添加影院</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -40,8 +41,11 @@
 
 <script>
 import { getCinemaList, delCinema } from "@/api/cinema";
+import goBack from "@/components/Backone/index";
 export default {
-  filters: {},
+  components:{
+    goBack
+  },
   data() {
     return {
       list: null,
@@ -107,7 +111,7 @@ export default {
     },
     //删除
     del(row){
-      this.$confirm(`群定要删除${row.cinema_name}?`, "提示", {
+      this.$confirm(`确定要删除${row.cinema_name}?`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"

@@ -125,13 +125,13 @@ export function to0(n){
  */
 export const stampToTime = (date, format= "YMDhms") => {
   let getDate = null;
-  console.warn(date);
+  
   if(Object.prototype.toString.call(date) == '[object Date]'){
     //GMT
     getDate = date;
   }else{
     //时间戳
-    getDate = date/1000000000000 >= 1 ? date* 1000: date;
+    getDate = date/10000000000 < 1 ? date* 1000: date;
   }
   
   let oDate = new Date(getDate);
