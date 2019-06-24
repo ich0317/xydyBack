@@ -37,12 +37,12 @@
           <tr>
             <td width="40" height="34">&nbsp;</td>
             <td>
-              <span class="mark-col" v-for="(item,index) in markCol" :key="index">{{item}}</span>
+              <span class="mark-col" v-for="(item,index) in markCol" :key="index">{{item.isShow ? item.n : ''}}</span>
             </td>
           </tr>
           <tr>
             <td>
-              <span class="mark-row" v-for="(item,index) in markRow" :key="index">{{item}}</span>
+              <span class="mark-row" v-for="(item,index) in markRow" :key="index">{{item.isShow ? item.n : ''}}</span>
             </td>
             <td>
               <div v-for="(item,index) in seatArr" :key="index" class="row-cloumn">
@@ -162,19 +162,25 @@ export default {
       //座位信息
       seatInit: {
         row: 5,
-        col: 8,
-        rowSort: "bt",
-        colSort: "rl",
+        col: 4,
+        rowSort: "tb",
+        colSort: "lr",
         screen_id: "" //影厅id
       },
       seatArr: [], //座位图
       markCol: [], //列坐标
-      markRow: [] //行坐标
+      markRow: [], //行坐标
+      aa:[]
     };
   },
   mounted() {
     this.cinema_id = this.$route.query.cinema_id || "";
-    this.getScreenList();
+    //this.getScreenList();
+    let initRes = initSeatMap(this.seatInit);
+      this.seatArr = initRes.seatJson;
+      this.markCol = initRes.markCol;
+      this.markRow = initRes.markRow;
+      console.log(this.seatArr);
   },
   methods: {
     //显示
@@ -233,8 +239,9 @@ export default {
     initMap() {
       let initRes = initSeatMap(this.seatInit);
       this.seatArr = initRes.seatJson;
-      this.markCol = initRes.markCol;
-      this.markRow = initRes.markRow;
+      this.markCol = initRes.markCol; //列
+      this.markRow = initRes.markRow; //排
+      console.log(initRes.seatJson);
       this.cancelScreen();
     },
     //画座位
@@ -242,6 +249,54 @@ export default {
       let { _x, _y } = ev.target.dataset;
       let getIsShow = this.seatArr[_y][_x - 1];
       getIsShow.is_show = getIsShow.is_show == 0 ? 1 : 0;
+
+      var a= this.seatArr[_y].filter(v=>{
+        return v.is_show == 1;
+      })
+      if(a.length == 0){
+        this.markRow[_y-1].isShow = false;
+        
+        var b= this.markRow.filter(v=>{
+          return v.isShow == true;
+        })
+        b.forEach((v,i)=>{
+          v.n = (i+1);
+        });
+       
+       for(var name in this.seatArr){
+         for(var j=0; j<this.seatArr[name].length; j++){
+           console.log(this.seatArr[name][j].seat_row);
+           this.seatArr[name][j].seat_row = this.markRow[name*1-1].n
+         }
+       }
+        return;
+      }
+      this.markRow[_y-1].isShow = true;
+      this.markRow.forEach((v,i)=>{
+        v.n = (i+1);
+      });
+
+      a.forEach((v,i)=>{
+        v.seat_col = (i+1);
+      });
+      var count = 0;
+      for(var name in this.seatArr){
+        if(this.seatArr[name][_x-1].is_show){
+          count++;
+        }
+      }
+      if(count == 0){
+        this.markCol[_x-1].isShow = false;
+        var c= this.markCol.filter(v=>{
+          return v.isShow == true;
+        })
+        c.forEach((v,i)=>{
+          v.n = (i+1);
+        });
+      }else{
+        this.markCol[_x-1].isShow = true;
+      }
+  
     },
     //提交座位
     submitSeat() {

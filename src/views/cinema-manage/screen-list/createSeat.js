@@ -13,7 +13,7 @@ export const initSeatMap = seatInit => {
   switch (rowSort + colSort) {
     case "tblr":
       for (i = 1; i <= rowNum; i++) {
-        markRow.push(i);
+        markRow.push({n:i,isShow:true});
         r++;
         let arr = [];
         let c=0;
@@ -34,7 +34,7 @@ export const initSeatMap = seatInit => {
         seatJson[i] = arr;
       }
       for (let k=1; k<=colNum; k++){
-        markCol.push(k);
+        markCol.push({n:k,isShow:true});
       }
       break;
     case "tbrl":
