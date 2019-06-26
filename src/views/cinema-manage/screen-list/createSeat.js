@@ -1,129 +1,157 @@
+/**
+ * 初始化座位图
+ * @param { Object } seatInit 创建座位参数集合 
+ */
 export const initSeatMap = seatInit => {
-  let { row, col, rowSort, colSort , screen_id} = seatInit;
-  let seatJson = {};
-  let i = null,
-    j = null;
-    let r=0;
-  let rowNum = row;
-  let colNum = col;
-  let markCol = [];
+  let { row, col, rowSort, colSort,screen_id } = seatInit;
+  let sort = rowSort + colSort;
   let markRow = [];
-
-
-  switch (rowSort + colSort) {
+  let markCol = [];
+  //座位图坐标顺序  t上 b下 l左 r右
+  switch (sort) {
     case "tblr":
-      for (i = 1; i <= rowNum; i++) {
-        markRow.push({n:i,isShow:true});
-        r++;
-        let arr = [];
-        let c=0;
-        
-        for (j = 1; j <= colNum; j++) {
-            c++;
-          arr.push({
-            seat_col: j,
-            seat_row: i,
-            graph_col: j,
-            graph_row: i,
-            seat_status: 0,
-            is_show: 1,
-            screen_id
-          }); 
-        }
-
-        seatJson[i] = arr;
-      }
-      for (let k=1; k<=colNum; k++){
-        markCol.push({n:k,isShow:true});
-      }
+      return initTblr();
       break;
     case "tbrl":
-      for (i = 1; i <= rowNum; i++) {
-        //排
-        markRow.push(i);
-        r++;
-        let arr = [];
-        let c=0;
-        for (j = colNum; j >= 1; j--) {
-          //列
-          c++;
-          arr.push({
-            seat_col: j,
-            seat_row: i,
-            graph_col: c,
-            graph_row: r,
-            seat_status: 0,
-            is_show: 1,
-            screen_id
-          });
-        }
-        
-        seatJson[i] = arr;
-      }
-      for (let k = colNum; k >= 1; k--){
-        markCol.push(k);
-      }
+      return initTbrl();
       break;
     case "btlr":
-    
-      for (i = rowNum; i >= 1; i--) {
-        //排
-        markRow.push(i);
-        r++;
-        let arr = [];
-        let c=0;
-        for (j = 1; j <= colNum; j++) {
-          //列
-          c++;
-          arr.push({
-            seat_col: j,
-            seat_row: i,
-            graph_col: c,
-            graph_row: r,
-            seat_status: 0,
-            is_show: 1,
-            screen_id
-          });
-        }
-        
-        seatJson[r] = arr;
-      }
-      for (let k=1; k<=colNum; k++){
-        markCol.push(k);
-      }
+      return initBtlr();
       break;
     case "btrl":
-
-      for (i = rowNum; i >= 1; i--) {
-        //排
-        markRow.push(i);
-        r++;
-        let arr = [];
-        let c=0;
-        for (j = colNum; j >= 1; j--) {
-          //列
-          c++;
-          arr.push({
-            seat_col: j,
-            seat_row: i,
-            graph_col: c,
-            graph_row: r,
-            seat_status: 0,
-            is_show: 1,
-            screen_id
-          });
-        }
-        
-        seatJson[r] = arr;
-      }
-      for (let k = colNum; k >= 1; k--){
-        markCol.push(k);
-      }
+      return initBtrl();
       break;
   }
-  return {
-    seatJson,
-    markCol,
-    markRow
-  };
-};
+
+  function initTblr() {
+    let json = {};
+    let i = null,
+      j = null;
+    for (i = 0; i < row; i++) {
+      let rowArr = [];
+      markRow.push({ k: i + 1, is_show: 1 });
+      for (j = 0; j < col; j++) {
+        rowArr.push({
+          seat_col: j + 1,
+          seat_row: i + 1,
+          graph_col: j,
+          graph_row: i,
+          seat_status: 0,
+          is_show: 1,
+          screen_id
+        });
+
+        markCol.push({ k: j + 1, is_show: 1 });
+      }
+      json[i] = rowArr;
+    }
+    return {
+      seats: json,
+      markRow,
+      markCol:rmSame(markCol,'k')
+    };
+  }
+
+  function initTbrl() {
+    let json = {};
+    let i = null,
+      j = null;
+    for (i = 0; i < row; i++) {
+      let rowArr = [];
+      markRow.push({ k: i + 1, is_show: 1 });
+      for (j = col; j > 0; j--) {
+        rowArr.push({
+          seat_col: j,
+          seat_row: i + 1,
+          graph_col: col - j,
+          graph_row: i,
+          seat_status: 0,
+          is_show: 1,
+          screen_id
+        });
+
+        markCol.push({ k: j, is_show: 1 });
+      }
+      json[i] = rowArr;
+    }
+    return {
+      seats: json,
+      markRow,
+      markCol:rmSame(markCol,'k')
+    };
+  }
+
+  function initBtlr() {
+    let json = {};
+    let i = null,
+      j = null;
+    for (i = row; i > 0; i--) {
+      let rowArr = [];
+      markRow.push({ k: i, is_show: 1 });
+
+      for (j = 0; j < col; j++) {
+        rowArr.push({
+          seat_col: j + 1,
+          seat_row: i,
+          graph_col: j,
+          graph_row: row - i,
+          seat_status: 0,
+          is_show: 1,
+          screen_id
+        });
+
+        markCol.push({ k: j + 1, is_show: 1 });
+      }
+      json[row - i] = rowArr;
+    }
+
+    return {
+      seats: json,
+      markRow,
+      markCol:rmSame(markCol,'k')
+    };
+  }
+
+  function initBtrl() {
+    let json = {};
+    let i = null,
+      j = null;
+    for (i = row; i > 0; i--) {
+      let rowArr = [];
+      markRow.push({ k: i, is_show: 1 });
+      for (j = col; j > 0; j--) {
+        rowArr.push({
+          seat_col: j,
+          seat_row: i,
+          graph_col: col - j,
+          graph_row: row - i,
+          seat_status: 0,
+          is_show: 1,
+          screen_id
+        });
+
+        markCol.push({ k: j, is_show: 1 });
+      }
+      json[row - i] = rowArr;
+    }
+
+    return {
+      seats: json,
+      markRow,
+      markCol:rmSame(markCol,'k')
+    };
+  }
+}
+
+/**
+ * 移除重复数组对象
+ * @param {Array} arr 包含对象数组
+ * @param {String} key 要对比的键值
+ */
+export const rmSame = (arr,key) =>{
+  let obj = {};
+  return arr.reduce((v, next) => {
+    obj[next[key]] ? "" : (obj[next[key]] = true && v.push(next));
+    return v;
+  }, []);
+}
