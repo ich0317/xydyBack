@@ -48,11 +48,17 @@ export const constantRoutes = [
     name: "college-manage",
     meta: { title: "影院管理", icon: "" },
     children: [
+      // {
+      //   path: "college-list",
+      //   name: "college-list",
+      //   component: () => import("@/views/cinema-manage/college-list/index"),
+      //   meta: { title: "影院列表"}
+      // },
       {
-        path: "college-list",
-        name: "college-list",
-        component: () => import("@/views/cinema-manage/college-list/index"),
-        meta: { title: "学校列表"}
+        path: "cinema-list",
+        name: "cinema-list",
+        component: () => import("@/views/cinema-manage/cinema-list/index"),
+        meta: { title: "影院列表"}
       },
       {
         path: "college-list/detail",
@@ -61,12 +67,7 @@ export const constantRoutes = [
         hidden: true,
         meta: { title: "学校详情"}
       },
-      {
-        path: "cinema-list",
-        name: "cinema-list",
-        component: () => import("@/views/cinema-manage/cinema-list/index"),
-        meta: { title: "影院列表"}
-      },
+      
       {
         path: "cinema-list/detail",
         name: "cinema-detail",

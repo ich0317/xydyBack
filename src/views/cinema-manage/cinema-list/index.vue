@@ -6,13 +6,15 @@
           <div class="pan-name">查询条件</div>
           <div class="pan-form">
             <el-form :inline="true" label-width="80px" class="demo-form-inline">
-              <el-form-item label="影院名称" v-if="!college_id">
-                <el-input placeholder="影院名称" v-model="searchName" size="medium"></el-input>
+              <el-form-item label="所在城市">
+                <el-cascader placeholder="请选择" :options="cityOptions"></el-cascader>
+              </el-form-item>
+              <el-form-item label="影院名称">
+                <el-input placeholder="影院名称" size="medium" v-model="searchName"></el-input>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" size="medium" @click="search" v-if="!college_id">查询</el-button>
-                <goBack v-if="college_id"></goBack>
-                <el-button type="primary" @click="addCinema" size="medium" v-if="college_id">添加影院</el-button>
+                <el-button type="primary" size="medium">查询</el-button>
+                <el-button size="medium" @click="addCinema">添加影院</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -22,10 +24,10 @@
     <div class="content-box">
       <el-table :data="list" stripe style="width: 100%" element-loading-text="Loading" v-loading="listLoading">
         <el-table-column prop="cinema_name" label="影院名称" width="220"></el-table-column>
-        <el-table-column prop="screen_amount" label="影厅数量" width="150"></el-table-column>
-        <el-table-column prop="worker_name" label="管理人" width="150"></el-table-column>
-        <el-table-column prop="worker_tel" label="联系方式" width="150"></el-table-column>
-        <el-table-column prop="_cinema_status" label="状态" ></el-table-column>
+        <el-table-column prop="area" label="省市" width="200"></el-table-column>
+        <el-table-column prop="area" label="地址" width="280"></el-table-column>
+        <el-table-column prop="serve_price" label="服务费" width="100"></el-table-column>
+        <el-table-column prop="cinema_status" label="状态"></el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope" width="100">
             <el-button @click="edit(scope.row)" type="primary" size="mini">编辑</el-button>
@@ -42,6 +44,7 @@
 <script>
 import { getCinemaList, delCinema } from "@/api/cinema";
 import goBack from "@/components/Backone/index";
+import city from "@/utils/city";
 export default {
   components:{
     goBack
@@ -51,7 +54,8 @@ export default {
       list: null,
       listLoading: true,
       college_id:'',//上一级页面带过来
-      searchName:null
+      searchName:null,
+      cityOptions:city
     }
   },
   mounted() {
@@ -136,6 +140,12 @@ export default {
           cinema_id:row._id
         }
       });
+    },
+    //添加影院
+    addCinema(){
+      this.$router.push({
+        name:"cinema-detail"
+      })
     }
   }
 }
