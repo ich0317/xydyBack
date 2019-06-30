@@ -286,10 +286,9 @@ span {
 
         <a
           href="javascript:;"
-          v-for="item in screenInfo"
+          v-for="(item,index) in screenInfo"
           :class="{on:item.screen_no == currentHallId}"
-          :aaa="item.screen_no"
-          :bbb="currentHallId"
+          :key="index"
         >
           <span @click="screenTag(item.id)" :screen_id="item.screen_id">{{item.screen_name}}</span>
           <!-- <em class="screen_x" @click="delScreen(item.id,item.screen_name,item.screen_no)">x</em> -->

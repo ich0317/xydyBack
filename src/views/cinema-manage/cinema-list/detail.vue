@@ -8,7 +8,7 @@
       </el-col>
     </el-row>
     <div class="content-box">
-      <el-form ref="form" label-width="110px" style="width:460px;">
+      <el-form ref="form" label-width="110px" style="width:600px;">
         <el-form-item label="影院名称">
           <el-input v-model="cinemaInfo.cinema_name"></el-input>
         </el-form-item>
@@ -17,7 +17,7 @@
             placeholder="请选择"
             :options="cityOptions"
             v-model="cinemaInfo.area"
-            style="width:350px;"
+            style="width:490px;"
             @change="changeArea"
           ></el-cascader>
         </el-form-item>
@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { addCinema } from "@/api/cinema";
+import { addCinema , getCinemaDetail } from "@/api/cinema";
 import goBack from "@/components/Backone/index";
 import city from "@/utils/city";
 export default {
@@ -60,7 +60,8 @@ export default {
       cityOptions: city,
       cinemaInfo: {
         cinema_name: "", //影院名称
-        area: [], //所在城市
+        area: [], //所在城市拼音
+        areaCn:[],  //所在城市转汉子
         address: "", //详细地址
         lat_lng: "", //影院坐标
         serve_price: 0, //服务费
@@ -71,8 +72,13 @@ export default {
     };
   },
   mounted() {
-    this.cinemaInfo = { ...this.cinemaInfo, ...this.$route.query };
-    this.getQQMark();
+    let cinema_id = this.$route.query.cinema_id;
+    
+    if(cinema_id){
+      this.getDetail(cinema_id);
+    }else{
+      this.getQQMark();
+    }
   },
   methods: {
     //新增
@@ -83,21 +89,65 @@ export default {
           message: msg,
           type: "success"
         });
-        //this.$router.go(-1);
+        this.$router.go(-1);
       });
     },
+    //改变地区
     changeArea(val){
       this.clearOverlays(this.markers);
-      this.searchService.search(val[0]);
+      this.searchService.search(`${this.pinyinToHanzi(val[0])}${this.pinyinToHanzi(val[1])}`);
+      this.cinemaInfo.areaCn = [this.pinyinToHanzi(val[0]),this.pinyinToHanzi(val[1])];
     },
+    //清楚mark
     clearOverlays(overlays){
       var overlay;
         while ((overlay = overlays.pop())) {
           overlay.setMap(null);
         }
     },
+    //获取详情
+    getDetail(cinema_id){
+      getCinemaDetail({cinema_id}).then(res=>{
+        let {data} = res;
+        let proArr = data.province.split(',');
+        let cityArr = data.city.split(',');
+        data.area = [`${proArr[1]}`,`${cityArr[1]}`];
+        data.areaCn = [`${proArr[0]}`,`${cityArr[0]}`];
+        this.cinemaInfo = data;
+        this.cinemaInfo.lat_lng = `${data.lat},${data.lng}`
+        this.getQQMark(data.lat,data.lng);
+      })
+    },
+    //拼音转汉字或汉字转拼音
+    pinyinToHanzi(cname){
+      let re = /[a-zA-Z]+/g;
+      let v = null,l=null;
+      if(re.test(cname)){
+        //英文
+        v = 'value';
+        l = 'label'
+      }else{
+        //汉子
+        v = 'label';
+        l = 'value';
+      }
+
+      let i = null;
+      for(i = 0; i<city.length; i++){
+        if(city[i][v] != cname){
+          for(let j = 0; j<city[i].children.length; j++){
+            if(city[i].children[j][v] == cname){
+              return city[i].children[j][l];
+            }
+          }
+        }else{
+          return city[i][l];
+        }
+      }
+      return false;
+    },
     //qq地图
-    getQQMark(lat = 39.916527, lng = 116.397128) {
+    getQQMark( lat= 39.916527,  lng= 116.397128) {
       var _this = this;
       var map = new qq.maps.Map(document.getElementById("container"), {
         center: new qq.maps.LatLng(lat, lng),
@@ -121,12 +171,9 @@ export default {
         var post = new qq.maps.LatLng(lat, lng)
         g.getAddress(post);
         g.setComplete(function(r){
-          console.log(r);
           _this.cinemaInfo.address=r.detail.address + r.detail.nearPois[0].name || '';
-          //if(_this.cinemaInfo.area.length == 0){}
-
-            _this.cinemaInfo.area = [r.detail.addressComponents.province,r.detail.addressComponents.city];
-          
+          _this.cinemaInfo.area = [_this.pinyinToHanzi(r.detail.addressComponents.province),_this.pinyinToHanzi(r.detail.addressComponents.city)];
+          _this.cinemaInfo.areaCn = [r.detail.addressComponents.province,r.detail.addressComponents.city];
         })
       });
 
@@ -162,7 +209,7 @@ export default {
         },
         //若服务请求失败，则运行以下函数
         error: function() {
-          alert("出错了。");
+          console.error("出错了。");
         }
       });
     }

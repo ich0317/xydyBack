@@ -65,6 +65,7 @@
         </div>
       </div>
       <div class="screen-box" ref="screenbox">
+   
         <div class="screen-bar clearfix" v-for="(v,idx) in screenList" :key="idx">
           <div class="screen-name">{{v.screen_name}}</div>
           <div class="lines" ref="lines" :data-screenid="v._id">
@@ -196,7 +197,7 @@ export default {
     //获取影厅
     async getScreenList() {
       this.listLoading = true;
-      getScreenSession({ cinema_id: this.cinema_id,start_datetime:`${stampToTime(this.nowDate,'YMD')}`}).then(res => {
+      getScreenSession({ cinema_id: this.cinema_id,selectDate:`${stampToTime(this.nowDate,'YMD')}`}).then(res => {
         let { data, code, msg } = res;
         let aScreen = data.screen;
 
@@ -344,12 +345,15 @@ export default {
           oDragFilm.end_time
         }`;
 
+        this.saveFilm._isSetShow = false;
+        this.saveFilm.push(oDragFilm);
+
         addSession(oDragFilm).then(res => {
-          this.saveFilm._isSetShow = false;
-          this.saveFilm.push(oDragFilm);
+          let {data} = res;
+          let getData = {...oDragFilm, ...data};
           this.screenList.forEach(v => {
-            if (v._id == oDragFilm.screen_id) {
-              v.children.push(oDragFilm);
+            if (v._id == getData.screen_id) {
+              v.children.push(getData);
             }
           });
         });
@@ -430,7 +434,8 @@ export default {
       });
     },
     //点选排期
-    tapSelect(screen_id, _id,status) {
+    tapSelect(screen_id, _id, status) {
+     
       if(status != 0)return;
       let delObj = rmSameObj(this.agreeFilm, "_id", { screen_id, _id });
       let aD = document.querySelectorAll(".drag-film");

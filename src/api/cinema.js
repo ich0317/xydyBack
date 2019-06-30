@@ -1,30 +1,5 @@
 import request from '@/utils/request'
 
-//添加学校
-export function addCollege(data) {
-  return request({
-    url: '/api/addCollege',
-    method: 'post',
-    data
-  })
-}
-//获取学校
-export function getCollege(data) {
-  return request({
-    url: '/api/getCollege',
-    method: 'get',
-    params:data
-  })
-}
-//删除学校
-export function delCollege(data) {
-  return request({
-    url: '/api/delCollege',
-    method: 'post',
-    data
-  })
-}
-
 //添加影院
 export function addCinema(data) {
   return request({
@@ -34,10 +9,19 @@ export function addCinema(data) {
   })
 }
 
-//获取影院
-export function getCinemaList(data) {
+//获取影院列表
+export function getCinema(data) {
   return request({
-    url: '/api/getCinemaList',
+    url: '/api/getCinema',
+    method: 'get',
+    params:data
+  })
+}
+
+//获取影院详情
+export function getCinemaDetail(data) {
+  return request({
+    url: '/api/getCinemaDetail',
     method: 'get',
     params:data
   })

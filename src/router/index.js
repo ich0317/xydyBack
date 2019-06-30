@@ -44,7 +44,7 @@ export const constantRoutes = [
   {
     path: "/",
     component: Layout,
-    redirect: "/college-list",
+    redirect: "/cinema-list",
     name: "college-manage",
     meta: { title: "影院管理", icon: "" },
     children: [

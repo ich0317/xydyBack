@@ -36,6 +36,8 @@ export const initSeatMap = seatInit => {
           seat_row: i + 1,
           graph_col: j,
           graph_row: i,
+          fixed_x:i + 1,
+          fixed_y:j + 1,
           seat_status: 0,
           is_show: 1,
           screen_id
@@ -65,6 +67,8 @@ export const initSeatMap = seatInit => {
           seat_row: i + 1,
           graph_col: col - j,
           graph_row: i,
+          fixed_x:i + i+1,
+          fixed_y:j + j,
           seat_status: 0,
           is_show: 1,
           screen_id
@@ -95,6 +99,8 @@ export const initSeatMap = seatInit => {
           seat_row: i,
           graph_col: j,
           graph_row: row - i,
+          fixed_x:i,
+          fixed_y:j + 1,
           seat_status: 0,
           is_show: 1,
           screen_id
@@ -125,6 +131,8 @@ export const initSeatMap = seatInit => {
           seat_row: i,
           graph_col: col - j,
           graph_row: row - i,
+          fixed_x:i,
+          fixed_y:j,
           seat_status: 0,
           is_show: 1,
           screen_id

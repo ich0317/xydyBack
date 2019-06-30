@@ -32,8 +32,8 @@
           :key="index"
         >{{ item.screen_name }}</span>
       </div>
-      <div class="content-box" style="min-height:400px;">
-        <table width="auto">
+      <div class="content-box maps">
+        <table width="auto" style="display:inline-block;">
           <tr>
             <td width="40" height="34">&nbsp;</td>
             <td>
@@ -63,6 +63,8 @@
                   :style="{opacity:v.is_show == 0 ? '0' : '1'}"
                   :data-_x="v.graph_col"
                   :data-_y="v.graph_row"
+                  :data-_fixed_x="v.fixed_x"
+                  :data-_fixed_y="v.fixed_y"
                   @click="drawSeat($event)"
                 >{{v.seat_row}}排{{v.seat_col}}</span>
               </div>
@@ -146,6 +148,7 @@
 import inputBox from "@/components/Inputbox/index";
 import { addScreen, getScreen, addSeat, getSeat } from "@/api/screen";
 import { initSeatMap } from "./createSeat.js";
+import { findInArr } from "@/utils/index.js";
 import goBack from "@/components/Backone/index";
 export default {
   components: {
@@ -229,11 +232,11 @@ export default {
         } else {
           this.allScreenInfo = data.screen;
           this.currentScreenId = this.seatInit.screen_id = data.screen[0]._id;
-          let seatRes = this.formatSeat(data.seat);
-          this.seatInit = {...this.seatInit,...seatRes[0]}
-          this.seatArr = seatRes[1].seatArr;
-          this.markCol = seatRes[1].markCol;
-          this.markRow = seatRes[1].markRow;
+          this.formatSeat(data.seat);
+          // this.seatInit = {...this.seatInit,...seatRes[0]}
+          // this.seatArr = seatRes[1].seatArr;
+          // this.markCol = seatRes[1].markCol;
+          // this.markRow = seatRes[1].markRow;
         }
       });
     },
@@ -302,11 +305,13 @@ export default {
           //更新座位里所有列
           s.forEach((v, i) => {
             v.seat_col = i + 1;
+            
           });
 
           //更新列标识
           c.forEach((v, i) => {
             v.k = i + 1;
+
           });
         },
         rl: function() {
@@ -343,6 +348,7 @@ export default {
       this.markRow.forEach((v, i) => {
         this.seatArr[i].forEach((item, j) => {
           item.seat_row = v.k;
+
         });
       });
     },
@@ -350,10 +356,16 @@ export default {
     submitSeat() {
       let arr = [];
       for (let name in this.seatArr) {
+        this.seatArr[name].forEach(v=>{
+          v.fixed_y = this.markCol[v.graph_col].k;
+          v.fixed_x = this.markRow[v.graph_row].k;         
+        })
         arr = arr.concat(this.seatArr[name]);
       }
+ 
       addSeat({ seat: arr }).then(res => {
-        let { msg } = res;
+        let { msg , data } = res;
+        this.formatSeat(data);
         this.$message({
           message: msg,
           type: "success"
@@ -367,7 +379,7 @@ export default {
       let json = {};
       let jsonRow = {};
       let jsonCol = {};
-
+     
       seatArr.forEach((v, i) => {
         json[v.graph_row]
           ? json[v.graph_row].push(v)
@@ -376,10 +388,10 @@ export default {
         if (jsonRow[v.graph_row] === undefined) {
           if (v.is_show == 1) {
             jsonRow[v.graph_row] = 1;
-            markRow.push({ k: v.seat_row });
+            markRow.push({ k: v.fixed_x });
           } else {
             jsonRow[v.graph_row] = 0;
-            markRow.push({ k: v.seat_row });
+            markRow.push({ k: v.fixed_x });
           }
         } else {
           if (v.is_show == 1) {
@@ -391,10 +403,10 @@ export default {
         if (jsonCol[v.graph_col] === undefined) {
           if (v.is_show == 1) {
             jsonCol[v.graph_col] = 1;
-            markCol.push({ k: v.seat_col });
+            markCol.push({ k: v.fixed_y });
           } else {
             jsonCol[v.graph_col] = 0;
-            markCol.push({ k: v.seat_col });
+            markCol.push({ k: v.fixed_y });
           }
         } else {
           if (v.is_show == 1) {
@@ -402,28 +414,32 @@ export default {
           }
           markCol[v.graph_col].is_show = jsonCol[v.graph_col] ? 1 : 0;
         }
+
       });
 
-      return [
-        {
-          row: markRow.length,
-          col: markCol.length,
-          rowSort: markRow[0] - markRow[1] > 0 ? "bt" : "tb",
-          colSort: markCol[0] - markCol[1] > 0 ? "rl" : "lr"
-        },{
-          seatArr: json, //座位图
-          markCol, //列坐标
-          markRow //行坐标
-        }
-      ]
+      this.seatInit = {...this.seatInit,...{
+        row: markRow.length,
+        col: markCol.length,
+        rowSort: markRow[0] - markRow[1] > 0 ? "bt" : "tb",
+        colSort: markCol[0] - markCol[1] > 0 ? "rl" : "lr"
+      }}
+
+      this.seatArr = json;
+      this.markCol = markCol;
+      this.markRow = markRow;
+
     },
     //切换影厅
     changeScreen(screen_id) {
-      this.currentScreenId = screen_id;
+      this.currentScreenId = this.seatInit.screen_id = screen_id;
+      this.seatArr = [];
+      this.markCol = [];
+      this.markRow = [];
       getSeat({ screen_id }).then(res => {
         let { data, code, msg } = res;
         if (code == 1) {
           this.$message.error(msg);
+          return;
         }
         this.formatSeat(data);
       });
@@ -517,9 +533,13 @@ export default {
     display: block;
   }
   .content-box {
-    display: flex;
-
-    justify-content: center;
+    position: absolute;
+    left: 0;
+    top: 80px;
+    bottom: 0;
+    right: 0;
+    overflow-y: auto;
+    text-align: center;
   }
   .submit-btns {
     padding: 20px;
