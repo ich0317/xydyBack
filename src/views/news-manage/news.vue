@@ -1,5 +1,5 @@
 <template>
-  <div id="user">
+  <div id="find-news">
     <el-row>
       <el-col :span="24">
         <div class="pan-box">
@@ -7,10 +7,10 @@
           <div class="pan-form">
             <el-form :inline="true" label-width="80px" class="demo-form-inline">
               <el-form-item label="文章标题">
-                <el-input size="medium" placeholder="文章标题" ></el-input>
+                <el-input size="medium" v-model="title" placeholder="文章标题" ></el-input>
               </el-form-item>
               <el-form-item>
-                <el-button size="medium" type="primary">查询</el-button>
+                <el-button size="medium" type="primary" @click="search">查询</el-button>
                 <el-button size="medium" @click="addArticle">添加文章</el-button>
               </el-form-item>
             </el-form>
@@ -26,7 +26,11 @@
         <el-table-column prop="date" label="发布日期" width="150"></el-table-column>
         <el-table-column prop="views" label="阅读量" width="100"></el-table-column>
         <el-table-column prop="like" label="点赞量" width="100"></el-table-column>
-        <el-table-column prop="article_status" label="发布状态"></el-table-column>
+        <el-table-column prop="article_status" label="发布状态">
+          <template slot-scope="scope">
+            <p :class="[scope.row.status ? 'fabu' : 'nofabu']">{{ scope.row.article_status }}</p>
+          </template>
+        </el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope" width="100">
             <el-button @click="edit(scope.row)" type="primary" size="mini">编辑</el-button>
@@ -35,7 +39,9 @@
         </el-table-column>
       </el-table>
     </div>
-    
+    <div class="page-wrap">
+      <el-pagination background layout="prev, pager, next" @current-change="changePage" :current-page="pageInfo.page" :page-size="pageInfo.page_size" :total="pageInfo.total"></el-pagination>
+    </div>
   </div>
 </template>
 
@@ -48,22 +54,30 @@ export default {
     return {
       list: [],
       listLoading: true,
-      searchName:null //搜索关键字
+      title:null, //搜索关键字
+      //分页信息
+      pageInfo:{
+        total:0,
+        page_size:10,
+        page:1
+      }
     }
   },
   mounted() {
     this.getNews();
   },
   methods: {
+    //获取新闻
     getNews(){
       this.listLoading = true;
-      getNewsList().then(res=>{
+      getNewsList({...this.pageInfo,title:this.title}).then(res=>{
         let {data} = res;
-        data.forEach(v => {
+        data.list.forEach(v => {
           v.date = stampToTime(v.release_date,'YMD');
           v.article_status = v.status ? '已发布' : '未发布';
         })
-        this.list = data;
+        this.list = data.list;
+        this.pageInfo.total = data.total;
         this.listLoading = false;
       })
     },
@@ -95,6 +109,15 @@ export default {
         })
         .catch(() => {});
     },
+    //分页
+    changePage(){
+      this.pageInfo.page = 1;
+      this.getNews();
+    },
+    //搜索
+    search(){
+      this.getNews();
+    },
     //去添加文章
     addArticle(){
       this.$router.push({
@@ -105,4 +128,8 @@ export default {
 }
 </script>
 <style lang="scss">
+#find-news{
+  .fabu{ color: #67c23a;}
+  .nofabu{ color: #82848a;}
+}
 </style>
