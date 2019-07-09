@@ -7,7 +7,7 @@
           <div class="pan-form">
             <el-form :inline="true" label-width="80px" class="demo-form-inline">
               <el-form-item label="所在城市">
-                <el-cascader placeholder="请选择" :options="cityOptions"></el-cascader>
+                <el-cascader placeholder="请选择" size="medium" :options="cityOptions"></el-cascader>
               </el-form-item>
               <el-form-item label="影院名称">
                 <el-input placeholder="影院名称" size="medium" v-model="searchName"></el-input>
@@ -25,9 +25,9 @@
       <el-table :data="list" stripe style="width: 100%" element-loading-text="Loading" v-loading="listLoading">
         <el-table-column prop="cinema_name" label="影院名称" width="220"></el-table-column>
         <el-table-column prop="area" label="省市" width="200"></el-table-column>
-        <el-table-column prop="area" label="地址" width="280"></el-table-column>
+        <el-table-column prop="address" label="地址" width="280"></el-table-column>
         <el-table-column prop="serve_price" label="服务费" width="100"></el-table-column>
-        <el-table-column prop="cinema_status" label="状态"></el-table-column>
+        <el-table-column prop="_cinema_status" label="状态"></el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope" width="100">
             <el-button @click="edit(scope.row)" type="primary" size="mini">编辑</el-button>
@@ -38,11 +38,14 @@
         </el-table-column>
       </el-table>
     </div>
+    <div class="page-wrap">
+      <el-pagination background layout="prev, pager, next" @current-change="changePage" :current-page="pageInfo.page" :page-size="pageInfo.page_size" :total="pageInfo.total"></el-pagination>
+    </div>
   </div>
 </template>
 
 <script>
-import { getCinemaList, delCinema } from "@/api/cinema";
+import { getCinema, delCinema } from "@/api/cinema";
 import goBack from "@/components/Backone/index";
 import city from "@/utils/city";
 export default {
@@ -55,14 +58,19 @@ export default {
       listLoading: true,
       college_id:'',//上一级页面带过来
       searchName:null,
-      cityOptions:city
+      cityOptions:city,
+      //分页信息
+      pageInfo:{
+        total:0,
+        page_size:10,
+        page:1
+      }
     }
   },
   mounted() {
     let {college_id } = this.$route.query;
-    
     this.college_id = college_id;
-    this.getCinema();
+    this.getCinemaData();
   },
   methods: {
     //添加影院
@@ -75,20 +83,16 @@ export default {
       });
     },
     //获取影院
-    getCinema(searchName = ""){
-      let searchCond = null;
-      if(searchName){
-        searchCond = {cinema_name:searchName};
-      }else{
-        searchCond = {college_id:this.college_id};
-      }
+    getCinemaData(){
       this.listLoading=true;
-      getCinemaList(searchCond).then(res=>{
-        let {data,msg}=res;
-         this.list = data.map(v=>{
-          v._cinema_status = v.cinema_status ? '启用' : '停用';
+      getCinema(this.pageInfo).then(res=>{
+        let {data, msg}= res;
+         this.list = data.data.map(v=>{
+          v._cinema_status = v.status ? '启用' : '停用';
+          v.area = `${v.province.split(',')[0]} ${v.city.split(',')[0]}`;
           return v;
         })
+        this.pageInfo.total = data.total;
         this.listLoading=false;
       })
     },
@@ -97,12 +101,14 @@ export default {
   
       this.$router.push({
         name:"cinema-detail",
-        query:row
+        query:{
+          cinema_id:row._id
+        }
       })
     },
     //搜索
     search(){
-      this.getCinema(this.searchName);
+      this.getCinemaData(this.searchName);
     },
     //影厅
     inScreen(row){
@@ -127,7 +133,7 @@ export default {
               message: msg,
               type: "success"
             });
-            this.getCinema();
+            this.getCinemaData();
           });
         })
         .catch(() => {});
@@ -146,6 +152,10 @@ export default {
       this.$router.push({
         name:"cinema-detail"
       })
+    },
+    changePage(val){
+      this.pageInfo.page = val;
+      this.getCinemaData();
     }
   }
 }

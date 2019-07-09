@@ -125,7 +125,7 @@ export function to0(n){
  */
 export const stampToTime = (date, format= "YMDhms") => {
   let getDate = null;
-  
+  console.log(date);
   if(Object.prototype.toString.call(date) == '[object Date]'){
     //GMT
     getDate = date;
@@ -181,3 +181,18 @@ export const rmSameObj = (arr, key, obj) => {
   });
   return _del;
 };
+
+/**
+ * 数组对象查重
+ * @param {array, object, string}
+ *
+ */
+export const findInArr = (arr,newObj,key) => {
+  let i=0;
+  for(i; i<arr.length; i++){
+    if(arr[i][key] == newObj[key]){
+      return i;
+    }
+  }
+  return -1;
+}
