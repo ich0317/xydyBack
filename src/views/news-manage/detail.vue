@@ -85,6 +85,7 @@ export default {
   methods: {
     //添加文章
     addArticle(){
+      this.articleInfo.release_date = stampToTime(this.articleInfo.release_date,'YMDhms');
       addNews({...this.articleInfo, _id:this.articleId}).then(res=>{
         this.$message({
           message: res.msg,

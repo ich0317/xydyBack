@@ -125,7 +125,7 @@ export function to0(n){
  */
 export const stampToTime = (date, format= "YMDhms") => {
   let getDate = null;
-  console.log(date);
+  
   if(Object.prototype.toString.call(date) == '[object Date]'){
     //GMT
     getDate = date;
