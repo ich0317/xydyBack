@@ -22,10 +22,10 @@
       <el-table :data="list" stripe style="width: 100%" element-loading-text="Loading"
         v-loading="listLoading">
         <el-table-column prop="title" label="文章标题" width="280"></el-table-column>
-        <el-table-column prop="editor" label="编辑" width="150"></el-table-column>
+        <el-table-column prop="username" label="编辑" width="150"></el-table-column>
         <el-table-column prop="date" label="发布日期" width="150"></el-table-column>
-        <el-table-column prop="views" label="阅读量" width="100"></el-table-column>
-        <el-table-column prop="like" label="点赞量" width="100"></el-table-column>
+        <el-table-column prop="views" label="阅读数" width="100"></el-table-column>
+        <el-table-column prop="like" label="点赞数" width="100"></el-table-column>
         <el-table-column prop="article_status" label="发布状态">
           <template slot-scope="scope">
             <p :class="[scope.row.status ? 'fabu' : 'nofabu']">{{ scope.row.article_status }}</p>
@@ -57,7 +57,7 @@ export default {
       title:null, //搜索关键字
       //分页信息
       pageInfo:{
-        total:0,
+        total:null,
         page_size:10,
         page:1
       }

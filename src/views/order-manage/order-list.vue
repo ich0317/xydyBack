@@ -6,23 +6,30 @@
           <div class="pan-name">查询条件</div>
           <div class="pan-form">
             <el-form :inline="true" label-width="80px" class="demo-form-inline">
-              <el-form-item label="影片名称">
-                <el-input placeholder="影片名称" ></el-input>
-              </el-form-item>
-              <el-form-item label="订单号">
-                <el-input placeholder="订单号" ></el-input>
-              </el-form-item>
               <el-form-item label="下单日期">
                 <el-date-picker
-                  v-model="order_date"
                   type="daterange"
                   start-placeholder="开始日期"
                   end-placeholder="结束日期"
-                  :default-time="['00:00:00', '23:59:59']">
+                  size="medium"
+                  v-model="searchCond.orderDateTime"
+                  value-format="yyyy-MM-dd"
+                  :default-time="['00:00:00', '23:59:59']"
+                  style="width:280px;"
+                  >
                 </el-date-picker>
               </el-form-item>
+              <el-form-item label="影片名称">
+                <el-input placeholder="影片名称" size="medium" v-model="searchCond.film_name"></el-input>
+              </el-form-item>
+              <el-form-item label="订单号">
+                <el-input placeholder="订单号" size="medium" v-model="searchCond.order_num"></el-input>
+              </el-form-item>
+              <el-form-item label="用户">
+                <el-input placeholder="用户" size="medium" v-model="searchCond.username"></el-input>
+              </el-form-item>
               <el-form-item>
-                <el-button type="primary">查询</el-button>
+                <el-button type="primary" size="medium" @click="search">查询</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -30,58 +37,111 @@
       </el-col>
     </el-row>
     <div class="content-box">
-      <el-table :data="list" stripe style="width: 100%">
-        <el-table-column prop="order_num" label="订单号" width="200"></el-table-column>
-        <el-table-column prop="film_name" label="影片名称" width="200"></el-table-column>
-        <el-table-column prop="college_name" label="学校名称" width="150"></el-table-column>
+      <el-table :data="listFormat" stripe style="width: 100%" element-loading-text="Loading" v-loading="listLoading">
+        <el-table-column prop="username" label="用户" width="160"></el-table-column>
+        <el-table-column prop="order_num" label="订单号" width="180"></el-table-column>
+        <el-table-column prop="order_datetime" label="下单日期" width="180"></el-table-column>
+        <el-table-column prop="film_name" label="影片名称" width="180"></el-table-column>
         <el-table-column prop="cinema_name" label="影院名称" width="150"></el-table-column>
         <el-table-column prop="screen_name" label="影厅" width="150"></el-table-column>
-        <el-table-column prop="order_price" label="订单金额" width="150"></el-table-column>
-        <el-table-column prop="status" label="订单状态"></el-table-column>
+        <el-table-column prop="seat" label="购买张数" width="80" align="center"></el-table-column>
+        <el-table-column prop="total_price" label="订单金额（元）" width="100" align="center"></el-table-column>
+        <el-table-column prop="pay_price" label="支付金额（元）" width="100" align="center"></el-table-column>
+        <el-table-column prop="serve_price" label="服务费（元）" width="100" align="center"></el-table-column>
+        <el-table-column prop="status" label="订单状态"  align="center">
+          <template slot-scope="scope" width="100">
+          <span :class="{'payed':scope.row.status == '已支付','unpay':scope.row.status == '未支付','refund':scope.row.status == '已退款','closed':scope.row.status == '已关闭'}">
+            {{scope.row.status}}
+          </span>
+          </template>
+        </el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope" width="100">
             <el-button @click="view(scope.row)" type="primary" size="mini">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
+
+      
     </div>
-    
+    <div class="page-wrap">
+      <el-pagination background layout="prev, pager, next" @current-change="changePage" :current-page="pageInfo.page" :page-size="pageInfo.page_size" :total="pageInfo.total"></el-pagination>
+    </div>
   </div>
 </template>
 
 <script>
-import { getCollegeList, delCollege } from "@/api/cinema";
+import { getOrder } from "@/api/order";
+import { stampToTime } from "@/utils/index";
 export default {
-  filters: {},
   data() {
     return {
-      list: [
-        {
-          order_num:'20192536001247',
-          film_name:'大人物',
-          college_name:'清华大学',
-          cinema_name:'清华大礼堂',
-          screen_name:'杜比影音',
-          order_price:'12.5',
-          status:'已完成'
-        }
-      ],
-      listLoading: true,
-      searchName:null, //搜索关键字
-      order_date:[]
+      list: [],
+      listLoading: null,
+      searchCond:{
+        orderDateTime:[stampToTime(new Date(),'YMD'),stampToTime(new Date(),'YMD')],
+        film_name:'',
+        order_num:'',
+        username:''
+      },
+      pageInfo:{
+        page:1,
+        page_size:10,
+        total:null
+      },
+      ORDER_STATUS:{
+        0:'未支付',
+        1:'已支付',
+        2:'已退款',
+        3:'已关闭'
+      }
     }
   },
-  created() {
-    
+  mounted() {
+    this.getOrderList();
   },
   methods: {
+    getOrderList(){
+      this.listLoading = true;
+      getOrder({...this.searchCond, ...this.pageInfo}).then(res=>{
+        let {data, mag, code} = res;
+        this.list = data.list;
+        this.pageInfo.total = data.total;
+        this.listLoading = false;
+      })
+    },
+    //搜索
+    search(){
+      this.pageInfo.page = 1;
+      this.getOrderList();
+    },
+    changePage(val){
+      this.pageInfo.page = val;
+      this.getOrderList();
+    },
     view(){
       this.$router.push({
         name:"order-detail"
       });
     }
+  },
+  computed:{
+    listFormat(){
+      this.list.forEach(v=>{
+        v.status = this.ORDER_STATUS[v.status];
+        v.seat = v.seat.length;
+      })
+      return this.list;
+    }
   }
 }
 </script>
 <style lang="scss">
+#order{
+  .payed{ color: #67c23a;}
+  .unpay{ color: #e6a23c;}
+  .refund{ color: #E71010;}
+  .closed{ color: #999;}
+}
+
 </style>

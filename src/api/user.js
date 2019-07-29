@@ -15,3 +15,14 @@ export function logout(data) {
     data
   })
 }
+
+//获取用户列表
+export function getUserList(data) {
+  return request({
+    url: '/api/getUserList',
+    method: 'get',
+    params:data
+  })
+}
+
+
