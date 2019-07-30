@@ -99,7 +99,7 @@
         <el-form-item label="影片海报">
           <el-upload
             class="avatar-uploader"
-            action="http://localhost:9528/api/upFilmPhoto"
+            :action="baseUrl"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload"
@@ -145,7 +145,8 @@ export default {
         release_date: "", //上映日期
         film_version: [], //影片版本
         _film_version: ""
-      }
+      },
+      baseUrl:''
     }
   },
   methods: {
@@ -201,6 +202,7 @@ export default {
     }
   },
   mounted(){
+    this.baseUrl = `${process.env.VUE_APP_BASE_API}api/upFilmPhoto`;
     let film_id = this.$route.query._id;
     if(film_id){
       this.getFilmDetailData(film_id);
