@@ -7,13 +7,13 @@
           <div class="pan-form">
             <el-form :inline="true" label-width="80px" class="demo-form-inline">
               <el-form-item label="所在城市">
-                <el-cascader placeholder="请选择" size="medium" :options="cityOptions"></el-cascader>
+                <el-cascader placeholder="请选择" size="medium" :options="cityOptions"  v-model="searchCond.city"></el-cascader>
               </el-form-item>
               <el-form-item label="影院名称">
-                <el-input placeholder="影院名称" size="medium" v-model="searchName"></el-input>
+                <el-input placeholder="影院名称" size="medium" v-model="searchCond.searchName"></el-input>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" size="medium">查询</el-button>
+                <el-button type="primary" size="medium" @click="search">查询</el-button>
                 <el-button size="medium" @click="addCinema">添加影院</el-button>
               </el-form-item>
             </el-form>
@@ -26,7 +26,7 @@
         <el-table-column prop="cinema_name" label="影院名称" width="220"></el-table-column>
         <el-table-column prop="area" label="省市" width="200"></el-table-column>
         <el-table-column prop="address" label="地址" width="280"></el-table-column>
-        <el-table-column prop="serve_price" label="服务费" width="100"></el-table-column>
+        <el-table-column prop="serve_price" label="服务费（元）" width="120" align="center"></el-table-column>
         <el-table-column prop="_cinema_status" label="状态"></el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope" width="100">
@@ -57,13 +57,17 @@ export default {
       list: null,
       listLoading: true,
       college_id:'',//上一级页面带过来
-      searchName:null,
       cityOptions:city,
       //分页信息
       pageInfo:{
         total:0,
         page_size:10,
         page:1
+      },
+      //搜索条件
+      searchCond:{
+        city:[],
+        searchName:null
       }
     }
   },
@@ -85,7 +89,7 @@ export default {
     //获取影院
     getCinemaData(){
       this.listLoading=true;
-      getCinema(this.pageInfo).then(res=>{
+      getCinema({...this.pageInfo,...this.searchCond}).then(res=>{
         let {data, msg}= res;
          this.list = data.data.map(v=>{
           v._cinema_status = v.status ? '启用' : '停用';
@@ -98,17 +102,12 @@ export default {
     },
     //编辑影院
     edit(row){
-  
       this.$router.push({
         name:"cinema-detail",
         query:{
           cinema_id:row._id
         }
       })
-    },
-    //搜索
-    search(){
-      this.getCinemaData(this.searchName);
     },
     //影厅
     inScreen(row){
@@ -155,6 +154,10 @@ export default {
     },
     changePage(val){
       this.pageInfo.page = val;
+      this.getCinemaData();
+    },
+    search(){
+      this.pageInfo.page = 1;
       this.getCinemaData();
     }
   }
