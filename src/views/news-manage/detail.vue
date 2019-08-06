@@ -19,7 +19,7 @@
         <el-form-item label="列表图片" style="width:660px;">
           <el-upload
             class="avatar-uploader"
-            action="http://localhost:9528/api/upNewsPhoto"
+            :action="baseUrl"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload"
@@ -71,10 +71,12 @@ export default {
         release_date:new Date(),
         status:true
       },
-      articleId:null
+      articleId:null,
+      baseUrl:''
     }
   },
   created(){
+    this.baseUrl = `${process.env.VUE_APP_BASE_API}api/upFilmPhoto`;
     this.articleId = this.$route.query._id;
   },
   mounted(){
