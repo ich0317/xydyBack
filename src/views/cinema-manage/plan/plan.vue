@@ -428,7 +428,7 @@ export default {
         this.$message({
           message: res.msg,
           type: "success"
-        });
+        })
         this.agreeFilm = [];
         this.getScreenList();
       });

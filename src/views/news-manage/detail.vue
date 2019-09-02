@@ -76,7 +76,7 @@ export default {
     }
   },
   created(){
-    this.baseUrl = `${process.env.VUE_APP_BASE_API}api/upFilmPhoto`;
+    this.baseUrl = `${process.env.VUE_APP_BASE_API}api/upNewsPhoto`;
     this.articleId = this.$route.query._id;
   },
   mounted(){

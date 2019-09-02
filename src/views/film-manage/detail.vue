@@ -10,7 +10,7 @@
     <div class="content-box">
       <el-form ref="form" label-width="110px" style="width:700px;">
         <el-form-item label="影片名称">
-          <el-input v-model="filmInfo.film_name"></el-input>
+          <el-input v-model="filmInfo.film_name" style="width:452px;"></el-input><el-button type="primary" style="margin-left:10px;" @click="getFilmInfo">{{getBtnText}}</el-button>
         </el-form-item>
         <el-form-item label="影片别名">
           <el-input v-model="filmInfo.alias"></el-input>
@@ -111,7 +111,6 @@
         <el-form-item>
           <goBack></goBack>
           <el-button type="primary" size="medium" @click="addFilmData">保存</el-button>
-          
         </el-form-item>
       </el-form>
     </div>
@@ -119,7 +118,7 @@
 </template>
 
 <script>
-import { addFilm,getFilmDetail } from "@/api/film";
+import { addFilm, getFilmDetail, getdbFilm } from "@/api/film";
 import goBack from "@/components/Backone/index";
 export default {
   components:{
@@ -146,7 +145,8 @@ export default {
         film_version: [], //影片版本
         _film_version: ""
       },
-      baseUrl:''
+      baseUrl:'',
+      getBtnText:'获取影片信息'
     }
   },
   methods: {
@@ -199,6 +199,16 @@ export default {
         this.$message.error("上传头像图片大小不能超过 2MB!");
       }
       return isJPG && isLt2M;
+    },
+    //抓取影片信息
+    getFilmInfo(){
+      this.getBtnText = '获取中...';
+      getdbFilm({film_name:this.filmInfo.film_name}).then(res=>{
+        let { msg, data } = res;
+        data.language= data.language.split('/');
+        this.filmInfo = data;
+        this.getBtnText = '获取影片信息';
+      })
     }
   },
   mounted(){

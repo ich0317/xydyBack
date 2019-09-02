@@ -1,8 +1,8 @@
 {
-  "name": "vue-admin-template",
+  "name": "chang-vue-admin",
   "version": "4.2.1",
   "description": "A vue admin template with Element UI & axios & iconfont & permission control & lint",
-  "author": "Pan <panfree23@gmail.com>",
+  "author": "changliang",
   "license": "MIT",
   "scripts": {
     "dev": "vue-cli-service serve",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "axios": "0.18.0",
-    "element-ui": "2.7.2",
+    "element-ui": "2.11.1",
     "js-cookie": "2.2.0",
     "normalize.css": "7.0.0",
     "nprogress": "0.2.0",
@@ -52,6 +52,7 @@
     "svg-sprite-loader": "4.1.3",
     "svgo": "1.2.2",
     "vue-template-compiler": "2.6.10"
+    
   },
   "engines": {
     "node": ">=8.9",

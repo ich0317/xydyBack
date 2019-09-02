@@ -78,7 +78,7 @@ export default {
       //分页信息
       pageInfo: {
         total: 0,
-        page_size: 5,
+        page_size: 10,
         page: 1
       }
     };
