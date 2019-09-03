@@ -206,7 +206,9 @@ export default {
       getdbFilm({film_name:this.filmInfo.film_name}).then(res=>{
         let { msg, data } = res;
         data.language= data.language.split('/');
-        this.filmInfo = data;
+        for(let name of Object.keys(data)){
+          this.filmInfo[name] = data[name];
+        }
         this.getBtnText = '获取影片信息';
       })
     }

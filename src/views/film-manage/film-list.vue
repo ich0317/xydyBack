@@ -90,7 +90,7 @@ export default {
     //添加影片
     addFilm() {
       this.$router.push({
-        name: "film-detail"
+        name: "add-film-detail"
       });
     },
     //获取影片
@@ -115,7 +115,7 @@ export default {
     //编辑
     edit(row) {
       this.$router.push({
-        name: "film-detail",
+        name: "edit-film-detail",
         query: { _id: row._id }
       });
     },

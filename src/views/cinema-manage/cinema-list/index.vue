@@ -27,7 +27,11 @@
         <el-table-column prop="area" label="省市" width="200"></el-table-column>
         <el-table-column prop="address" label="地址" width="280"></el-table-column>
         <el-table-column prop="serve_price" label="服务费（元）" width="120" align="center"></el-table-column>
-        <el-table-column prop="_cinema_status" label="状态"></el-table-column>
+        <el-table-column prop="_cinema_status" label="状态">
+          <template slot-scope="scope">
+            <StartStopStatus :nowStatus = "scope.row.status" start = "[1,'启用']" stop = "[0,'停用']" />
+          </template>
+        </el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope" width="100">
             <el-button @click="edit(scope.row)" type="primary" size="mini">编辑</el-button>
@@ -48,9 +52,11 @@
 import { getCinema, delCinema } from "@/api/cinema";
 import goBack from "@/components/Backone/index";
 import city from "@/utils/city";
+import StartStopStatus from '@/components/StartStopStatus/index'
 export default {
   components:{
-    goBack
+    goBack,
+    StartStopStatus
   },
   data() {
     return {
@@ -80,10 +86,7 @@ export default {
     //添加影院
     addCinema(){
       this.$router.push({
-        name:"cinema-detail",
-        query:{
-          college_id:this.college_id
-        }
+        path:"cinema-list/add"
       });
     },
     //获取影院
@@ -92,7 +95,7 @@ export default {
       getCinema({...this.pageInfo,...this.searchCond}).then(res=>{
         let {data, msg}= res;
          this.list = data.data.map(v=>{
-          v._cinema_status = v.status ? '启用' : '停用';
+          //v._cinema_status = v.status ? '启用' : '停用';
           v.area = `${v.province.split(',')[0]} ${v.city.split(',')[0]}`;
           return v;
         })
@@ -103,7 +106,7 @@ export default {
     //编辑影院
     edit(row){
       this.$router.push({
-        name:"cinema-detail",
+        path:"cinema-list/edit",
         query:{
           cinema_id:row._id
         }
@@ -145,12 +148,6 @@ export default {
           cinema_id:row._id
         }
       });
-    },
-    //添加影院
-    addCinema(){
-      this.$router.push({
-        name:"cinema-detail"
-      })
     },
     changePage(val){
       this.pageInfo.page = val;

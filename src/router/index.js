@@ -5,6 +5,17 @@ Vue.use(Router)
 
 /* Layout */
 import Layout from '@/layout'
+import Index from '@/views/cinema-manage/cinema-list/index'
+import CinemaDetail from '@/views/cinema-manage/cinema-list/detail'
+import Plan from '@/views/cinema-manage/plan/plan'
+import Screen from '@/views/cinema-manage/screen-list/index'
+import Film from '@/views/film-manage/film-list'
+import FilmDetail from '@/views/film-manage/detail'
+import Order from '@/views/order-manage/order-list'
+import OrderDetail from '@/views/order-manage/detail'
+import News from '@/views/news-manage/news'
+import NewsDetail from '@/views/news-manage/detail'
+import User from '@/views/user-manage/user-list'
 
 /**
  * Note: sub-menu only appear when route children.length >= 1
@@ -37,132 +48,126 @@ export const constantRoutes = [
     hidden: true
   },
   {
-    path: '/404',
-    component: () => import('@/views/404'),
-    hidden: true
-  },
-  {
     path: '/',
     component: Layout,
     redirect: '/cinema-list',
-    name: 'college-manage',
-    meta: { title: '影院管理', icon: 'cinema' },
     children: [
       {
-        path: 'cinema-list',
+        path: '/cinema-list',
         name: 'cinema-list',
-        component: () => import('@/views/cinema-manage/cinema-list/index'),
-        meta: { title: '影院列表' }
+        component: Index,
+        meta: { title: '影院管理', icon: 'cinema' }
       },
       {
-        path: 'college-list/detail',
-        name: 'college-detail',
-        component: () => import('@/views/cinema-manage/college-list/detail'),
+        path: 'cinema-list/add',
+        name: 'add-cinema-detail',
+        component: CinemaDetail,
         hidden: true,
-        meta: { title: '学校详情' }
+        meta: { title: '添加影院' }
       },
-
       {
-        path: 'cinema-list/detail',
-        name: 'cinema-detail',
-        component: () => import('@/views/cinema-manage/cinema-list/detail'),
+        path: 'cinema-list/edit',
+        name: 'edit-cinema-detail',
+        component: CinemaDetail,
         hidden: true,
-        meta: { title: '影院详情' }
+        meta: { title: '修改影院' }
       },
       {
         path: 'cinema-list/plan',
         name: 'plan',
-        component: () => import('@/views/cinema-manage/plan/plan'),
+        component: Plan,
         hidden: true,
         meta: { title: '影片排期' }
       },
       {
         path: 'cinema-list/screen',
         name: 'screen-list',
-        component: () => import('@/views/cinema-manage/screen-list/index'),
+        component: Screen,
         hidden: true,
         meta: { title: '创建影厅座位' }
       }
     ]
   },
   {
-    path: '/film-manage',
-    name: 'film-manage',
+    path: '/film-list',
     component: Layout,
-    redirect: '/film-list',
-    meta: { title: '影片管理', icon: 'film' },
     children: [
       {
-        path: 'film-list',
+        path: '/film-list',
         name: 'film-list',
-        component: () => import('@/views/film-manage/film-list'),
-        meta: { title: '影片列表', icon: '' }
+        component: Film,
+        meta: { title: '影片管理', icon: 'film' }
       },
       {
-        path: 'film-list/detail',
-        name: 'film-detail',
-        component: () => import('@/views/film-manage/detail'),
+        path: 'add',
+        name: 'add-film-detail',
+        component: FilmDetail,
         hidden: true,
-        meta: { title: '影片详情', icon: '' }
+        meta: { title: '添加影片' }
+      },
+      {
+        path: 'edit',
+        name: 'edit-film-detail',
+        component: FilmDetail,
+        hidden: true,
+        meta: { title: '修改影片' }
       }
     ]
   },
   {
-    path: '/order-manage',
-    name: 'order-manage',
+    path: '/order-list',
     component: Layout,
-    redirect: '/order-list',
-    meta: { title: '订单管理', icon: 'order' },
     children: [
       {
-        path: 'order-list',
+        path: '/order-list',
         name: 'order-list',
-        component: () => import('@/views/order-manage/order-list'),
-        meta: { title: '订单列表', icon: '' }
+        component: Order,
+        meta: { title: '订单管理', icon: 'order' }
       },
       {
-        path: 'order-list/detail',
+        path: 'detail',
         name: 'order-detail',
-        component: () => import('@/views/order-manage/detail'),
-        meta: { title: '订单详情', icon: '' },
+        component: OrderDetail,
+        meta: { title: '订单详情' },
         hidden: true
       }
     ]
   },
   {
-    path: '/news-manage',
-    name: 'news-manage',
+    path: '/news-list',
     component: Layout,
-    redirect: '/news',
-    meta: { title: '发现', icon: 'news' },
     children: [
       {
-        path: 'news',
+        path: '/news-list',
         name: 'news',
-        component: () => import('@/views/news-manage/news'),
-        meta: { title: '新闻列表', icon: '' }
+        component: News,
+        meta: { title: '新闻管理', icon: 'news' }
       },
       {
-        path: 'news/detail',
-        name: 'news-detail',
-        component: () => import('@/views/news-manage/detail'),
-        meta: { title: '新闻详情', icon: '' },
+        path: 'add',
+        name: 'add-news-detail',
+        component: NewsDetail,
+        meta: { title: '添加文章' },
+        hidden: true
+      },
+      {
+        path: 'edit',
+        name: 'edit-news-detail',
+        component: NewsDetail,
+        meta: { title: '修改文章' },
         hidden: true
       }
     ]
   },
   {
-    path: '/user-manage',
-    name: 'user-manage',
+    path: '/user-list',
     component: Layout,
-    redirect: '/user-list',
-    meta: { title: '用户管理', icon: 'user' },
     children: [
       {
-        path: 'user-list',
+        path: '/user-list',
         name: 'user-list',
-        component: () => import('@/views/user-manage/user-list'),
-        meta: { title: '用户列表', icon: '' }
+        component: User,
+        meta: { title: '用户管理', icon: 'user' }
       }
     ]
   },

@@ -35,7 +35,7 @@
                 </el-select>
               </el-form-item>
               <el-form-item label="影片价格">
-                <el-input style="width:100px;" v-model="searchInfo.sell_price" :disabled="isAdd"></el-input>
+                <el-input style="width:100px;" v-model="searchInfo.sell_price" :disabled="isAdd" @blur="numFormat"></el-input>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="addFilm">{{isAdd ? '取消添加' : '添加影片'}}</el-button>
@@ -135,7 +135,7 @@ import {
   delSession,
   agreeSession
 } from "@/api/plan";
-import { to0, stampToTime, timeToStamp, rmSameObj } from "@/utils/index";
+import { to0, stampToTime, timeToStamp, rmSameObj, integerAdd0 } from "@/utils/index";
 import goBack from "@/components/Backone/index";
 export default {
   components:{
@@ -317,7 +317,7 @@ export default {
       this.dragFilm.language = this.searchInfo.language;
       this.dragFilm.film_version = this.searchInfo.film_version;
       this.dragFilm.sell_price = this.searchInfo.sell_price;
-
+    
       if (this.isAdd) {
         this.$message({
           message: "影片已取消",
@@ -347,7 +347,6 @@ export default {
 
         this.saveFilm._isSetShow = false;
         this.saveFilm.push(oDragFilm);
-
         addSession(oDragFilm).then(res => {
           let {data} = res;
           let getData = {...oDragFilm, ...data};
@@ -471,6 +470,10 @@ export default {
         obj = obj.offsetParent;
       }
       return { left, top };
+    },
+    //价格格式转换
+    numFormat(){
+      this.searchInfo.sell_price = integerAdd0(this.searchInfo.sell_price)
     }
   },
   filters: {

@@ -28,7 +28,7 @@
         <el-table-column prop="like" label="点赞数" width="100"></el-table-column>
         <el-table-column prop="article_status" label="发布状态">
           <template slot-scope="scope">
-            <p :class="[scope.row.status ? 'fabu' : 'nofabu']">{{ scope.row.article_status }}</p>
+            <StartStopStatus :nowStatus = "scope.row.status" start = "[1,'已发布']" stop = "[0,'未发布']" />
           </template>
         </el-table-column>
         <el-table-column label="操作">
@@ -42,14 +42,18 @@
     <div class="page-wrap">
       <el-pagination background layout="prev, pager, next" @current-change="changePage" :current-page="pageInfo.page" :page-size="pageInfo.page_size" :total="pageInfo.total"></el-pagination>
     </div>
+    
   </div>
 </template>
 
 <script>
 import { getNewsList, delNews } from "@/api/news";
 import { stampToTime } from "@/utils/index";
-
+import StartStopStatus from '@/components/StartStopStatus/index'
 export default {
+  components: {
+    StartStopStatus
+  },
   data() {
     return {
       list: [],
@@ -84,7 +88,7 @@ export default {
     //编辑
     edit(row){
       this.$router.push({
-        name:'news-detail',
+        name:'edit-news-detail',
         query:{
           _id:row._id
         }
@@ -121,7 +125,7 @@ export default {
     //去添加文章
     addArticle(){
       this.$router.push({
-        name:'news-detail'
+        name:'add-news-detail'
       });
     }
   }
